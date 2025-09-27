@@ -4,7 +4,9 @@
       "Bash(npm run type-check:*)",
       "Bash(npm run build:*)",
       "Bash(tree:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "WebFetch(domain:ui.shadcn.com)",
+      "Bash(npx shadcn@latest add:*)"
     ],
     "deny": [],
     "ask": []

@@ -19,19 +19,21 @@ export default function UITestingPage() {
   const [selectValue, setSelectValue] = useState('');
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-screen bg-background p-4 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header with Theme Toggle */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 lg:mb-8 space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-4xl font-bold text-foreground mb-2">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2">
               UI Component Testing
             </h1>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground">
               Development-only page to test all components in light and dark modes
             </p>
           </div>
-          <ThemeToggle />
+          <div className="flex justify-start sm:justify-end">
+            <ThemeToggle />
+          </div>
         </div>
 
         {/* Color Palette Display */}
@@ -41,7 +43,7 @@ export default function UITestingPage() {
             <CardDescription>Official shadcn/ui colors with light/dark mode support</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 lg:gap-4">
               <div className="space-y-2">
                 <div className="w-full h-16 bg-background border rounded"></div>
                 <p className="text-sm font-medium">Background</p>
@@ -98,24 +100,24 @@ export default function UITestingPage() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Typography</CardTitle>
-            <CardDescription>Urbanist for headings (h1-h6) and Inter for body text</CardDescription>
+            <CardDescription>Geist Sans for headings (h1-h6) and Inter for body text</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold">Heading 1 - Urbanist Font</h1>
-              <p className="text-sm text-muted-foreground">font-family: Urbanist (headings)</p>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold">Heading 1 - Geist Sans Font</h1>
+              <p className="text-sm text-muted-foreground">font-family: Geist Sans (headings)</p>
             </div>
             <div className="space-y-2">
-              <h2 className="text-3xl font-semibold">Heading 2 - Section Title</h2>
-              <p className="text-sm text-muted-foreground">font-family: Urbanist (headings)</p>
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-semibold">Heading 2 - Section Title</h2>
+              <p className="text-sm text-muted-foreground">font-family: Geist Sans (headings)</p>
             </div>
             <div className="space-y-2">
-              <h3 className="text-2xl font-medium">Heading 3 - Subsection</h3>
-              <p className="text-sm text-muted-foreground">font-family: Urbanist (headings)</p>
+              <h3 className="text-lg sm:text-xl lg:text-2xl font-medium">Heading 3 - Subsection</h3>
+              <p className="text-sm text-muted-foreground">font-family: Geist Sans (headings)</p>
             </div>
             <div className="space-y-2">
-              <h4 className="text-xl font-medium">Heading 4 - Component Title</h4>
-              <p className="text-sm text-muted-foreground">font-family: Urbanist (headings)</p>
+              <h4 className="text-base sm:text-lg lg:text-xl font-medium">Heading 4 - Component Title</h4>
+              <p className="text-sm text-muted-foreground">font-family: Geist Sans (headings)</p>
             </div>
             <div className="space-y-2">
               <p className="text-base">Body text - Regular paragraph content with normal weight - Inter Font</p>
@@ -134,7 +136,7 @@ export default function UITestingPage() {
             <div className="border-t pt-4 mt-4">
               <h5 className="text-lg font-semibold mb-2">Font Test Examples:</h5>
               <div className="space-y-2">
-                <p className="font-heading">This text uses .font-heading class (Urbanist)</p>
+                <p className="font-heading">This text uses .font-heading class (Geist Sans)</p>
                 <p className="font-body">This text uses .font-body class (Inter)</p>
                 <p>This text uses default body font (should be Inter)</p>
               </div>
@@ -142,7 +144,7 @@ export default function UITestingPage() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
           {/* Buttons */}
           <Card>
             <CardHeader>
@@ -152,21 +154,21 @@ export default function UITestingPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <p className="text-sm font-medium">Variants:</p>
-                <div className="flex flex-wrap gap-2">
-                  <Button>Default</Button>
-                  <Button variant="secondary">Secondary</Button>
-                  <Button variant="outline">Outline</Button>
-                  <Button variant="ghost">Ghost</Button>
-                  <Button variant="destructive">Destructive</Button>
+                <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2">
+                  <Button className="w-full sm:w-auto">Default</Button>
+                  <Button variant="secondary" className="w-full sm:w-auto">Secondary</Button>
+                  <Button variant="outline" className="w-full sm:w-auto">Outline</Button>
+                  <Button variant="ghost" className="w-full sm:w-auto">Ghost</Button>
+                  <Button variant="destructive" className="w-full sm:w-auto">Destructive</Button>
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="text-sm font-medium">Sizes:</p>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button size="sm">Small</Button>
-                  <Button>Default</Button>
-                  <Button size="lg">Large</Button>
-                  <Button size="icon">
+                <p className="text-sm font-medium">Sizes (auto-width on tablet/desktop):</p>
+                <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
+                  <Button size="sm" className="w-full sm:w-auto">Small</Button>
+                  <Button className="w-full sm:w-auto">Default</Button>
+                  <Button size="lg" className="w-full sm:w-auto">Large</Button>
+                  <Button size="icon" className="mx-auto sm:mx-0">
                     <Icons.Plus className="h-4 w-4" />
                   </Button>
                 </div>
@@ -252,15 +254,15 @@ export default function UITestingPage() {
             <CardDescription>Radix icons (preferred) and Lucide icons (fallback)</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-8 md:grid-cols-12 lg:grid-cols-16 gap-4">
+            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3 lg:gap-4">
               {Object.entries(Icons).slice(0, 20).map(([name, IconComponent]) => {
                 const Icon = IconComponent as React.ComponentType<{ className?: string }>;
                 return (
-                  <div key={name} className="flex flex-col items-center space-y-2">
-                    <div className="p-2 border rounded hover:bg-accent">
-                      <Icon className="h-5 w-5" />
+                  <div key={name} className="flex flex-col items-center space-y-2 touch-target">
+                    <div className="p-2 border rounded hover:bg-accent transition-colors">
+                      <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                     </div>
-                    <span className="text-xs text-center">{name}</span>
+                    <span className="text-xs text-center break-words">{name}</span>
                   </div>
                 );
               })}
@@ -269,7 +271,7 @@ export default function UITestingPage() {
         </Card>
 
         {/* Interactive Components */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8 mb-6 lg:mb-8">
           {/* Dialog */}
           <Card>
             <CardHeader>
@@ -279,7 +281,7 @@ export default function UITestingPage() {
             <CardContent>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button>Open Dialog</Button>
+                  <Button className="w-full sm:w-auto">Open Dialog</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
@@ -306,7 +308,7 @@ export default function UITestingPage() {
             <CardContent>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline">Open Menu</Button>
+                  <Button variant="outline" className="w-full sm:w-auto">Open Menu</Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem>

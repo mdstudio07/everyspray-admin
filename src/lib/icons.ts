@@ -15,6 +15,7 @@ export const Icons = {
   Plus: RadixIcons.PlusIcon,
   Cross: RadixIcons.Cross2Icon,
   Check: RadixIcons.CheckIcon,
+  Menu: RadixIcons.HamburgerMenuIcon,
   ChevronRight: RadixIcons.ChevronRightIcon,
   ChevronDown: RadixIcons.ChevronDownIcon,
   ChevronLeft: RadixIcons.ChevronLeftIcon,
