@@ -1,16 +1,18 @@
-export default function AdminLayout({
+'use client';
+
+import { RouteProtection } from '@/lib/auth/route-protection';
+import AdminLayout from '@/components/layouts/admin-layout';
+
+export default function AdminLayoutWrapper({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="bg-red-600 text-white p-4">
-        <h1 className="text-xl font-bold">Admin Dashboard</h1>
-      </div>
-      <div className="container mx-auto p-4">
+    <RouteProtection allowedRoles={['team_member', 'super_admin']}>
+      <AdminLayout>
         {children}
-      </div>
-    </div>
+      </AdminLayout>
+    </RouteProtection>
   );
 }

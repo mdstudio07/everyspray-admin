@@ -1,16 +1,18 @@
-export default function ContributeLayout({
+'use client';
+
+import { RouteProtection } from '@/lib/auth/route-protection';
+import ContributorLayout from '@/components/layouts/contributor-layout';
+
+export default function ContributeLayoutWrapper({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="bg-green-600 text-white p-4">
-        <h1 className="text-xl font-bold">Contribute</h1>
-      </div>
-      <div className="container mx-auto p-4">
+    <RouteProtection allowedRoles={['contributor']}>
+      <ContributorLayout>
         {children}
-      </div>
-    </div>
+      </ContributorLayout>
+    </RouteProtection>
   );
 }

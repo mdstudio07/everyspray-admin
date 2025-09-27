@@ -53,6 +53,68 @@
    - When updating any folder structure, update the overview documentation
    - Maintain detailed descriptions of what each page does and its role access
 
+## UI Development & Testing
+8. **Development UI Testing Page:**
+   - **Location**: `/ui-testing` (development only)
+   - **Purpose**: Comprehensive showcase of all UI components, colors, fonts, animations
+   - **Features**: Live theme toggle to test light/dark mode appearance
+   - **Contents**: All shadcn/ui components, color palette, typography, icons, loading states
+   - **Usage**: Access `/ui-testing` during development to see how components look together
+   - **Icons**: Preference for Radix icons with Lucide fallback (configured in `src/lib/icons.ts`)
+
+## Responsive Design Requirements
+9. **MANDATORY: Multi-Device Native Experience:**
+   - **Mobile First**: Design for mobile (320px+), then scale up to tablet and desktop
+   - **Breakpoints**: Mobile (320-768px), Tablet (768-1024px), Desktop (1024px+)
+   - **Touch Targets**: Minimum 44px touch targets on mobile, accessible spacing
+   - **Native Feel**: Components must look and feel native on each device type
+   - **Performance**: Smooth interactions, no lag on any device
+   - **Accessibility**: Proper focus states, keyboard navigation, screen reader support
+
+## Device-Specific Design Rules
+10. **Component Responsiveness Requirements:**
+    - **Navigation**: Collapsible mobile menu, tablet sidebar, desktop full sidebar
+    - **Forms**: Single column mobile, optimized tablet layout, multi-column desktop
+    - **Tables**: Horizontal scroll mobile, card view option, full table desktop
+    - **Cards**: Single column mobile, 2-column tablet, 3+ column desktop
+    - **Buttons**: Full-width mobile where appropriate, auto-width tablet/desktop
+    - **Typography**: Scaled font sizes per device (mobile smaller, desktop larger)
+    - **Spacing**: Compressed mobile, comfortable tablet, generous desktop
+    - **Images**: Responsive with proper aspect ratios and optimization
+
+## UI Component Synchronization
+11. **UI Testing Page Sync Rule:**
+    - **MANDATORY**: Every UI component/change must be added to `/ui-testing` page
+    - **Purpose**: Visual verification of components across all devices and themes
+    - **Requirement**: When creating/modifying any component, immediately add it to UI testing
+    - **Testing**: Verify component works on mobile, tablet, desktop in light/dark modes
+    - **Documentation**: Keep UI testing page as comprehensive component showcase
+
+## Temporary Development User
+12. **TEMPORARY AUTH BYPASS (Development Only):**
+    - **Location**: `src/lib/stores/auth.ts` initialize() method
+    - **Temporary User**: `admin@temp.com` with `super_admin` role
+    - **Purpose**: Allows access to all pages during development without auth implementation
+    - **Access Level**: Super admin - can visit all admin, contributor, and super admin pages
+    - **⚠️ IMPORTANT**: This must be removed once auth pages are implemented and Supabase auth is fully connected
+    - **TODO**: Uncomment the real Supabase auth code and remove tempUser when auth system is ready
+
+## Commit Command Rule
+13. **commit:current command behavior:**
+    - When user says "commit:current", automatically add and commit all changes
+    - **Process**: First test if build is passing, then create commit
+    - **Commit message format**: One small line heading overview of what was done
+    - **Details**: Add bullet points below heading if needed to explain changes
+    - **Exclusions**: Do NOT include "helped by Claude" or similar AI assistance mentions
+    - **Example format**:
+      ```
+      feat: update processing animation and migrate to Geist fonts
+
+      - Fixed processing bars to anchor from bottom with slower timing
+      - Migrated from Urbanist to Geist Sans for headings
+      - Added Geist Mono support for tables and code
+      ```
+
 ## Commands to run for verification
 - Lint: `npm run lint` (if available)
 - Typecheck: `npm run typecheck` (if available)

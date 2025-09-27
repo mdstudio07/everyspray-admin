@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm run type-check:*)",
       "Bash(npm run build:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []
