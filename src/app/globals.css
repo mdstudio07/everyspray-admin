@@ -1,8 +1,68 @@
 @import "tailwindcss";
 
+/* Official shadcn/ui Color Schema */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);                    /* Pure white */
+  --foreground: oklch(0.145 0 0);                /* Very dark gray */
+  --card: oklch(1 0 0);                          /* White cards */
+  --card-foreground: oklch(0.145 0 0);           /* Dark text on cards */
+  --popover: oklch(1 0 0);                       /* White popovers */
+  --popover-foreground: oklch(0.145 0 0);        /* Dark text in popovers */
+  --primary: oklch(0.205 0 0);                   /* Very dark primary */
+  --primary-foreground: oklch(0.985 0 0);        /* Near white text */
+  --secondary: oklch(0.97 0 0);                  /* Light gray secondary */
+  --secondary-foreground: oklch(0.205 0 0);      /* Dark text */
+  --muted: oklch(0.97 0 0);                      /* Light gray muted */
+  --muted-foreground: oklch(0.556 0 0);          /* Medium gray text */
+  --accent: oklch(0.97 0 0);                     /* Light gray accent */
+  --accent-foreground: oklch(0.205 0 0);         /* Dark text */
+  --destructive: oklch(0.577 0.245 27.325);      /* Red for errors */
+  --border: oklch(0.922 0 0);                    /* Light gray borders */
+  --input: oklch(0.922 0 0);                     /* Light gray inputs */
+  --ring: oklch(0.708 0 0);                      /* Medium gray focus rings */
+
+  /* Sidebar specific colors */
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+/* Dark Mode */
+.dark {
+  --background: oklch(0.145 0 0);                /* Very dark background */
+  --foreground: oklch(0.985 0 0);                /* Near white text */
+  --card: oklch(0.205 0 0);                      /* Dark gray cards */
+  --card-foreground: oklch(0.985 0 0);           /* Light text on cards */
+  --popover: oklch(0.269 0 0);                   /* Darker popover */
+  --popover-foreground: oklch(0.985 0 0);        /* Light text */
+  --primary: oklch(0.922 0 0);                   /* Light primary */
+  --primary-foreground: oklch(0.205 0 0);        /* Dark text on primary */
+  --secondary: oklch(0.269 0 0);                 /* Dark gray secondary */
+  --secondary-foreground: oklch(0.985 0 0);      /* Light text */
+  --muted: oklch(0.269 0 0);                     /* Dark gray muted */
+  --muted-foreground: oklch(0.708 0 0);          /* Medium light text */
+  --accent: oklch(0.371 0 0);                    /* Medium gray accent */
+  --accent-foreground: oklch(0.985 0 0);         /* Light text */
+  --destructive: oklch(0.704 0.191 22.216);      /* Lighter red for dark mode */
+  --border: oklch(1 0 0 / 10%);                  /* Semi-transparent borders */
+  --input: oklch(1 0 0 / 15%);                   /* Semi-transparent inputs */
+  --ring: oklch(0.556 0 0);                      /* Medium gray focus rings */
+
+  /* Sidebar specific colors */
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.439 0 0);
 }
 
 @theme inline {
@@ -10,13 +70,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {

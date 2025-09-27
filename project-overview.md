@@ -8,6 +8,69 @@
 
 ---
 
+## 📁 FOLDER STRUCTURE & PAGE OVERVIEW
+
+### 🔹 Contributor Section (`/src/app/contribute/`)
+**Role Access**: contributor only
+- `layout.tsx` - Contributor navigation and layout wrapper
+- `dashboard/page.tsx` - Personal dashboard showing contribution stats, recent activities, achievements summary
+- `perfume/create/page.tsx` - Form to submit new perfume entries for review
+- `brand/create/page.tsx` - Form to submit new brand entries for review
+- `my-contributions/page.tsx` - List of all user's submissions with status (pending/approved/rejected)
+- `profile/page.tsx` - Personal profile with achievements, badges, contribution history
+- `achievements/page.tsx` - Detailed view of earned badges, milestones, and rewards
+
+### 🔹 Admin Section (`/src/app/admin/`)
+**Role Access**: team_member + super_admin
+- `layout.tsx` - Admin navigation and layout wrapper
+- `dashboard/page.tsx` - Admin overview with key metrics, pending approvals, system status
+- `perfumes/page.tsx` - Manage all perfumes (CRUD operations, bulk actions)
+- `brands/page.tsx` - Manage all brands (CRUD operations, merging duplicates)
+- `notes/page.tsx` - Manage fragrance notes (CRUD operations, categorization)
+- `moderation/page.tsx` - Review pending submissions, approve/reject content
+- `settings/page.tsx` - Admin profile settings (no achievements for admin roles)
+
+### 🔹 Super Admin Only Section (`/src/app/admin/(super-only)/`)
+**Role Access**: super_admin only
+- `layout.tsx` - Super admin restriction wrapper with access control
+- `users/page.tsx` - Manage all users, roles, permissions, user analytics
+- `team-management/page.tsx` - Manage team members, assign roles, monitor performance
+- `analytics/page.tsx` - Advanced system metrics, usage statistics, content insights
+
+### 🔹 Authentication Pages (`/src/app/(auth)/`)
+**Role Access**: public
+- `login/page.tsx` - User authentication with role-based redirect
+- `register/page.tsx` - User registration (defaults to contributor role)
+
+### 🔹 API Routes (`/src/app/api/`)
+- `trpc/[trpc]/route.ts` - tRPC API handler for all server functions
+- `upload/route.ts` - File upload endpoint for images and documents
+
+### 🔹 Components (`/src/components/`)
+- `layouts/` - Role-specific layout components
+  - `ContributorLayout.tsx` - Layout for contributor pages
+  - `AdminLayout.tsx` - Layout for admin pages
+  - `SuperAdminLayout.tsx` - Layout for super admin pages
+- `ui/` - Reusable UI components (prepared for shadcn/ui)
+- `common/` - Shared components across all roles
+
+### 🔹 Core Libraries (`/src/lib/`)
+- `trpc/` - tRPC configuration and routers
+  - `client.ts` - Client-side tRPC setup
+  - `server.ts` - Server-side tRPC configuration
+  - `provider.tsx` - React Query integration
+  - `router.ts` - API route definitions
+- `stores/` - Global state management
+  - `auth.ts` - Authentication state (Zustand)
+- `utils/` - Utility functions
+  - `env.ts` - Environment variable validation
+
+### 🔹 Type Definitions (`/src/types/`)
+- `database.types.ts` - Database schema types for Supabase
+- `auth.types.ts` - Authentication and user role types
+
+---
+
 ## 🌍 PHASE 1: FOUNDATION (Weeks 1-2)
 **Goal**: Basic project setup, authentication, and database foundation
 
