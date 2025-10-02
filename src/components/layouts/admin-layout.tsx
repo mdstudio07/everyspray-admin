@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icons } from '@/lib/icons';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import {
@@ -170,14 +169,12 @@ function AppSidebar() {
                 <span className="truncate font-semibold">{user?.email}</span>
                 <span className="truncate text-xs">Admin User</span>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
+              <div
                 onClick={signOut}
-                className="h-auto p-1"
+                className="flex h-auto cursor-pointer items-center justify-center rounded-md p-1 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               >
                 <Icons.LogOut className="h-4 w-4" />
-              </Button>
+              </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

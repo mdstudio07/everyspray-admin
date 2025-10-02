@@ -115,6 +115,25 @@
       - Added Geist Mono support for tables and code
       ```
 
+## VS Code Stability Measures
+14. **PREVENT VS CODE CRASHES during large operations:**
+    - **Auto-Save Frequency**: Ensure auto-save is enabled with 1-second intervals
+    - **Large File Handling**: When working with large database migrations or complex operations, work in smaller chunks
+    - **Memory Management**: Close unnecessary tabs and extensions during intensive development
+    - **Backup Strategy**: Always commit progress before major operations or when working for extended periods
+    - **Session Recovery**: If VS Code crashes, immediately check git status and commit any recoverable work
+    - **Operation Breaking**: Break large operations (like RBAC implementation) into smaller, committable chunks
+    - **Status Monitoring**: Use `git status` frequently to track progress and ensure nothing is lost
+
+## Migration File Naming Convention
+15. **Supabase Migration Files:**
+    - **Format**: Use timestamp format `YYYYMMDDHHMMSS_description.sql` (e.g., `20251228143022_create_rbac_system.sql`)
+    - **Reasoning**: Supabase reads migrations in lexicographical order, timestamps ensure proper chronological execution
+    - **Location**: Store in `supabase/migrations/` directory
+    - **Ordering**: Never use 001, 002 format as it doesn't handle parallel development well
+    - **Description**: Use descriptive names that explain the migration purpose
+    - **Example**: `20251228143022_create_rbac_schema.sql`, `20251228143045_setup_role_permissions.sql`
+
 ## Commands to run for verification
 - Lint: `npm run lint` (if available)
 - Typecheck: `npm run typecheck` (if available)

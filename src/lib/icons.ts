@@ -52,6 +52,7 @@ export const Icons = {
   Shield: LucideIcons.Shield,
   BarChart3: LucideIcons.BarChart3,
   LogOut: LucideIcons.LogOut,
+  LogIn: LucideIcons.LogIn,
 
   // All Radix icons (for comprehensive access)
   Radix: RadixIcons,

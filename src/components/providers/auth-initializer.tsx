@@ -7,8 +7,7 @@ export function AuthInitializer({ children }: { children: React.ReactNode }) {
   const initialize = useAuthStore((state) => state.initialize);
 
   useEffect(() => {
-    const cleanup = initialize();
-    return cleanup;
+    initialize();
   }, [initialize]);
 
   return <>{children}</>;
