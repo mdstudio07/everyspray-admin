@@ -10,7 +10,6 @@ import { toast } from 'sonner';
 import { Icons } from '@/lib/icons';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -19,42 +18,40 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useAuthStore } from '@/lib/stores/auth';
 
 // =====================================
-// VALIDATION SCHEMA
+// VALIDATION SCHEMAS
 // =====================================
 
-const registerSchema = z.object({
+const emailSchema = z.object({
   email: z
     .string()
     .min(1, 'Email is required')
     .email('Please enter a valid email address'),
-  password: z
+});
+
+const detailsSchema = z.object({
+  fullName: z
     .string()
-    .min(6, 'Password must be at least 6 characters long')
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      'Password must contain at least one lowercase letter, one uppercase letter, and one number'
-    ),
-  confirmPassword: z
-    .string()
-    .min(1, 'Please confirm your password'),
+    .min(2, 'Full name must be at least 2 characters long')
+    .max(50, 'Full name must be less than 50 characters'),
   username: z
     .string()
     .min(3, 'Username must be at least 3 characters long')
     .max(20, 'Username must be less than 20 characters')
     .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
-  fullName: z
+  password: z
     .string()
-    .min(2, 'Full name must be at least 2 characters long')
-    .max(50, 'Full name must be less than 50 characters'),
+    .min(8, 'Password must be at least 8 characters long')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      'Password must contain at least one lowercase letter, one uppercase letter, and one number'
+    ),
   acceptTerms: z
     .boolean()
     .refine(val => val === true, 'You must accept the terms of service'),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
 });
 
-type RegisterFormData = z.infer<typeof registerSchema>;
+type EmailFormData = z.infer<typeof emailSchema>;
+type DetailsFormData = z.infer<typeof detailsSchema>;
 
 // =====================================
 // PASSWORD STRENGTH INDICATOR
@@ -67,8 +64,8 @@ interface PasswordStrengthProps {
 function PasswordStrength({ password }: PasswordStrengthProps) {
   const getStrength = (pass: string) => {
     let strength = 0;
-    if (pass.length >= 6) strength++;
-    if (pass.length >= 10) strength++;
+    if (pass.length >= 8) strength++;
+    if (pass.length >= 12) strength++;
     if (/[a-z]/.test(pass)) strength++;
     if (/[A-Z]/.test(pass)) strength++;
     if (/[0-9]/.test(pass)) strength++;
@@ -117,68 +114,194 @@ function PasswordStrength({ password }: PasswordStrengthProps) {
 export default function RegisterPage() {
   const router = useRouter();
   const { signUp, clearError } = useAuthStore();
+  const [step, setStep] = useState<'email' | 'details'>('email');
   const [isLoading, setIsLoading] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  const [generatedUsername, setGeneratedUsername] = useState('');
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-    watch,
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+  // Email form
+  const emailForm = useForm<EmailFormData>({
+    resolver: zodResolver(emailSchema),
     defaultValues: {
       email: '',
-      password: '',
-      confirmPassword: '',
-      username: '',
+    },
+  });
+
+  // Details form
+  const detailsForm = useForm<DetailsFormData>({
+    resolver: zodResolver(detailsSchema),
+    defaultValues: {
       fullName: '',
+      username: '',
+      password: '',
       acceptTerms: false,
     },
   });
 
-  const watchedFields = watch();
-  const { password, username, acceptTerms } = watchedFields;
+  const { password, username, acceptTerms } = detailsForm.watch();
 
   // =====================================
   // USERNAME AVAILABILITY CHECK
   // =====================================
 
   useEffect(() => {
-    if (username && username.length >= 3) {
+    if (username && username.length >= 3 && username !== generatedUsername) {
       setCheckingUsername(true);
       const timeoutId = setTimeout(async () => {
-        // Simulate username check - replace with actual API call
         try {
-          // For demo, consider usernames starting with 'admin' as taken
-          const isTaken = username.toLowerCase().startsWith('admin');
-          setUsernameAvailable(!isTaken);
+          const response = await fetch('/api/check-username', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            setUsernameAvailable(data.available);
+          } else {
+            console.error('Username check error:', data.error);
+            setUsernameAvailable(null);
+          }
         } catch (error) {
           console.error('Error checking username:', error);
+          setUsernameAvailable(null);
         } finally {
           setCheckingUsername(false);
         }
       }, 500);
 
       return () => clearTimeout(timeoutId);
+    } else if (username === generatedUsername) {
+      setUsernameAvailable(true);
+      setCheckingUsername(false);
     } else {
       setUsernameAvailable(null);
       setCheckingUsername(false);
     }
-  }, [username]);
+  }, [username, generatedUsername]);
 
   // =====================================
-  // FORM SUBMISSION HANDLER
+  // GOOGLE OAUTH HANDLER
   // =====================================
 
-  const onSubmit = async (data: RegisterFormData) => {
+  const handleGoogleSignUp = async () => {
+    setIsLoading(true);
+    try {
+      // TODO: Implement Google OAuth with Supabase
+      toast.info('Coming Soon', {
+        description: 'Google Sign-Up will be available soon.',
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('Google sign-up error:', error);
+      toast.error('Authentication Failed', {
+        description: 'Unable to sign up with Google. Please try again.',
+        duration: 5000,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // =====================================
+  // EMAIL STEP HANDLER
+  // =====================================
+
+  const onEmailSubmit = async (data: EmailFormData) => {
+    setCheckingEmail(true);
+
+    try {
+      // Check if email already exists
+      const response = await fetch('/api/check-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: data.email }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        toast.error('Error', {
+          description: result.error || 'Failed to check email',
+          duration: 3000,
+        });
+        setCheckingEmail(false);
+        return;
+      }
+
+      if (result.exists) {
+        toast.error('Email Already Exists', {
+          description: 'This email is already registered. Please sign in instead.',
+          duration: 5000,
+        });
+        setCheckingEmail(false);
+        return;
+      }
+
+      // Email is available, generate username
+      const usernameResponse = await fetch('/api/generate-username', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: data.email }),
+      });
+
+      const usernameResult = await usernameResponse.json();
+
+      if (!usernameResponse.ok) {
+        toast.error('Error', {
+          description: 'Failed to generate username',
+          duration: 3000,
+        });
+        setCheckingEmail(false);
+        return;
+      }
+
+      // Set generated username and move to next step
+      setUserEmail(data.email);
+      setGeneratedUsername(usernameResult.username);
+      detailsForm.setValue('username', usernameResult.username);
+      setUsernameAvailable(true);
+      setStep('details');
+      setCheckingEmail(false);
+    } catch (error) {
+      console.error('Email check error:', error);
+      toast.error('Error', {
+        description: 'An unexpected error occurred. Please try again.',
+        duration: 5000,
+      });
+      setCheckingEmail(false);
+    }
+  };
+
+  // =====================================
+  // DETAILS STEP HANDLER
+  // =====================================
+
+  const onDetailsSubmit = async (data: DetailsFormData) => {
+    if (usernameAvailable === false) {
+      toast.error('Username Unavailable', {
+        description: 'Please choose a different username.',
+        duration: 3000,
+      });
+      return;
+    }
+
     setIsLoading(true);
     clearError();
 
     try {
-      const { error } = await signUp(data.email, data.password, {
+      const { error } = await signUp(userEmail, data.password, {
         username: data.username,
         full_name: data.fullName,
       });
@@ -192,17 +315,14 @@ export default function RegisterPage() {
         return;
       }
 
-      // Success toast
       toast.success('Registration Successful!', {
         description: 'Please check your email to verify your account.',
         duration: 5000,
       });
 
-      // Redirect to login page after successful registration
       setTimeout(() => {
         router.push('/login');
       }, 2000);
-
     } catch (error) {
       console.error('Registration error:', error);
       toast.error('Registration Failed', {
@@ -218,225 +338,310 @@ export default function RegisterPage() {
   // =====================================
 
   return (
-    <Card className="w-full border-border shadow-lg">
-      <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-2xl font-bold tracking-tight font-heading">
-          Create your account
-        </CardTitle>
-        <CardDescription className="text-muted-foreground">
-          Join our perfume community as a contributor
-        </CardDescription>
-      </CardHeader>
+    <div className="w-full space-y-6">
+      {/* Header */}
+      <div className="space-y-2 text-center">
+        <h1 className="font-heading text-3xl font-bold tracking-tight">
+          Create an account
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {step === 'email'
+            ? 'Enter your email below to create your account'
+            : 'Complete your profile details'}
+        </p>
+      </div>
 
-      <CardContent className="space-y-4">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Email Field */}
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium">
-              Email address *
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              disabled={isLoading}
-              {...register('email')}
-              className={errors.email ? 'border-destructive focus:border-destructive' : ''}
-              aria-invalid={!!errors.email}
-              aria-describedby={errors.email ? 'email-error' : undefined}
-            />
-            {errors.email && (
-              <p id="email-error" className="text-sm text-destructive" role="alert">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
+      {/* Forms */}
+      <div className="space-y-4">
+        {step === 'email' ? (
+          <>
+            {/* Google Sign Up */}
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={handleGoogleSignUp}
+              disabled={isLoading || checkingEmail}
+            >
+              <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
+              </svg>
+              Sign up with Google
+            </Button>
 
-          {/* Username Field */}
-          <div className="space-y-2">
-            <Label htmlFor="username" className="text-sm font-medium">
-              Username *
-            </Label>
+            {/* Divider */}
             <div className="relative">
-              <Input
-                id="username"
-                type="text"
-                placeholder="Choose a username"
-                disabled={isLoading}
-                {...register('username')}
-                className={errors.username ? 'border-destructive focus:border-destructive' : ''}
-                aria-invalid={!!errors.username}
-                aria-describedby={errors.username ? 'username-error' : 'username-help'}
-              />
-              {checkingUsername && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <LoadingSpinner size="sm" />
-                </div>
-              )}
-              {!checkingUsername && usernameAvailable === true && username.length >= 3 && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <Icons.Check className="h-4 w-4 text-green-500" />
-                </div>
-              )}
-              {!checkingUsername && usernameAvailable === false && username.length >= 3 && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <Icons.Cross className="h-4 w-4 text-destructive" />
-                </div>
-              )}
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
             </div>
-            {errors.username && (
-              <p id="username-error" className="text-sm text-destructive" role="alert">
-                {errors.username.message}
-              </p>
-            )}
-            {!errors.username && usernameAvailable === false && (
-              <p className="text-sm text-destructive">Username is already taken</p>
-            )}
-            {!errors.username && usernameAvailable === true && (
-              <p className="text-sm text-green-600">Username is available</p>
-            )}
-            <p id="username-help" className="text-xs text-muted-foreground">
-              3-20 characters, letters, numbers, and underscores only
-            </p>
-          </div>
 
-          {/* Full Name Field */}
-          <div className="space-y-2">
-            <Label htmlFor="fullName" className="text-sm font-medium">
-              Full name *
-            </Label>
-            <Input
-              id="fullName"
-              type="text"
-              placeholder="Enter your full name"
+            {/* Email Form */}
+            <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  autoComplete="email"
+                  disabled={checkingEmail}
+                  {...emailForm.register('email')}
+                  className={
+                    emailForm.formState.errors.email
+                      ? 'border-destructive focus:border-destructive'
+                      : ''
+                  }
+                />
+                {emailForm.formState.errors.email && (
+                  <p className="text-sm text-destructive" role="alert">
+                    {emailForm.formState.errors.email.message}
+                  </p>
+                )}
+              </div>
+
+              <Button type="submit" className="w-full" disabled={checkingEmail}>
+                {checkingEmail ? (
+                  <>
+                    <LoadingSpinner size="sm" className="mr-2" />
+                    Checking email...
+                  </>
+                ) : (
+                  'Continue'
+                )}
+              </Button>
+            </form>
+          </>
+        ) : (
+          <>
+            {/* Back to email button */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setStep('email')}
               disabled={isLoading}
-              {...register('fullName')}
-              className={errors.fullName ? 'border-destructive focus:border-destructive' : ''}
-              aria-invalid={!!errors.fullName}
-              aria-describedby={errors.fullName ? 'fullName-error' : undefined}
-            />
-            {errors.fullName && (
-              <p id="fullName-error" className="text-sm text-destructive" role="alert">
-                {errors.fullName.message}
-              </p>
-            )}
-          </div>
+              className="mb-2"
+            >
+              <Icons.ChevronLeft className="mr-1 h-4 w-4" />
+              Change email
+            </Button>
 
-          {/* Password Field */}
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm font-medium">
-              Password *
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Create a strong password"
-              disabled={isLoading}
-              {...register('password')}
-              className={errors.password ? 'border-destructive focus:border-destructive' : ''}
-              aria-invalid={!!errors.password}
-              aria-describedby={errors.password ? 'password-error' : 'password-help'}
-            />
-            {errors.password && (
-              <p id="password-error" className="text-sm text-destructive" role="alert">
-                {errors.password.message}
-              </p>
-            )}
-            <PasswordStrength password={password} />
-          </div>
+            {/* Details Form */}
+            <form onSubmit={detailsForm.handleSubmit(onDetailsSubmit)} className="space-y-4">
+              {/* Email Display (read-only) */}
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <div className="rounded-md border border-input bg-muted px-3 py-2 text-sm">
+                  {userEmail}
+                </div>
+              </div>
 
-          {/* Confirm Password Field */}
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword" className="text-sm font-medium">
-              Confirm password *
-            </Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              placeholder="Confirm your password"
-              disabled={isLoading}
-              {...register('confirmPassword')}
-              className={errors.confirmPassword ? 'border-destructive focus:border-destructive' : ''}
-              aria-invalid={!!errors.confirmPassword}
-              aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined}
-            />
-            {errors.confirmPassword && (
-              <p id="confirmPassword-error" className="text-sm text-destructive" role="alert">
-                {errors.confirmPassword.message}
-              </p>
-            )}
-          </div>
+              {/* Full Name Field */}
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Full name</Label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  placeholder="John Doe"
+                  autoComplete="name"
+                  disabled={isLoading}
+                  {...detailsForm.register('fullName')}
+                  className={detailsForm.formState.errors.fullName ? 'border-destructive focus:border-destructive' : ''}
+                />
+                {detailsForm.formState.errors.fullName && (
+                  <p className="text-sm text-destructive" role="alert">
+                    {detailsForm.formState.errors.fullName.message}
+                  </p>
+                )}
+              </div>
 
-          {/* Terms of Service Checkbox */}
-          <div className="space-y-2">
-            <div className="flex items-start space-x-2">
-              <Checkbox
-                id="acceptTerms"
-                checked={acceptTerms}
-                onCheckedChange={(checked) => setValue('acceptTerms', !!checked)}
-                disabled={isLoading}
-                className="mt-1"
-              />
-              <Label
-                htmlFor="acceptTerms"
-                className="text-sm leading-5 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                I agree to the{' '}
-                <Link
-                  href="/terms"
-                  className="font-medium text-primary hover:underline focus:outline-none focus:underline"
-                  target="_blank"
-                >
-                  Terms of Service
-                </Link>{' '}
-                and{' '}
-                <Link
-                  href="/privacy"
-                  className="font-medium text-primary hover:underline focus:outline-none focus:underline"
-                  target="_blank"
-                >
-                  Privacy Policy
-                </Link>
-              </Label>
-            </div>
-            {errors.acceptTerms && (
-              <p className="text-sm text-destructive" role="alert">
-                {errors.acceptTerms.message}
-              </p>
-            )}
-          </div>
+              {/* Username Field */}
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <div className="relative">
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="johndoe"
+                    autoComplete="username"
+                    disabled={isLoading}
+                    {...detailsForm.register('username')}
+                    className={detailsForm.formState.errors.username ? 'border-destructive focus:border-destructive pr-10' : 'pr-10'}
+                  />
+                  {checkingUsername && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <LoadingSpinner size="sm" />
+                    </div>
+                  )}
+                  {!checkingUsername && usernameAvailable === true && username && username.length >= 3 && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Icons.Check className="h-4 w-4 text-green-500" />
+                    </div>
+                  )}
+                  {!checkingUsername && usernameAvailable === false && username && username.length >= 3 && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Icons.Cross className="h-4 w-4 text-destructive" />
+                    </div>
+                  )}
+                </div>
+                {detailsForm.formState.errors.username && (
+                  <p className="text-sm text-destructive" role="alert">
+                    {detailsForm.formState.errors.username.message}
+                  </p>
+                )}
+                {!detailsForm.formState.errors.username && usernameAvailable === false && (
+                  <p className="text-sm text-destructive">Username is already taken</p>
+                )}
+                {!detailsForm.formState.errors.username && usernameAvailable === true && username !== generatedUsername && (
+                  <p className="text-sm text-green-600">Username is available</p>
+                )}
+              </div>
 
-          {/* Submit Button */}
-          <Button type="submit" className="w-full" disabled={isLoading || usernameAvailable === false}>
-            {isLoading ? (
-              <>
-                <LoadingSpinner size="sm" className="mr-2" />
-                Creating account...
-              </>
-            ) : (
-              <>
-                <Icons.User className="mr-2 h-4 w-4" />
-                Create account
-              </>
-            )}
-          </Button>
-        </form>
-      </CardContent>
+              {/* Password Field */}
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Create a strong password"
+                    autoComplete="new-password"
+                    disabled={isLoading}
+                    {...detailsForm.register('password')}
+                    className={
+                      detailsForm.formState.errors.password
+                        ? 'border-destructive focus:border-destructive pr-10'
+                        : 'pr-10'
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    disabled={isLoading}
+                  >
+                    {showPassword ? (
+                      <Icons.Cross className="h-4 w-4" />
+                    ) : (
+                      <Icons.Check className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                {detailsForm.formState.errors.password && (
+                  <p className="text-sm text-destructive" role="alert">
+                    {detailsForm.formState.errors.password.message}
+                  </p>
+                )}
+                <PasswordStrength password={password} />
+              </div>
 
-      <CardFooter className="flex flex-col space-y-2">
-        <div className="text-sm text-muted-foreground text-center">
-          Already have an account?{' '}
+              {/* Terms Checkbox */}
+              <div className="space-y-2">
+                <div className="flex items-start space-x-2">
+                  <Checkbox
+                    id="acceptTerms"
+                    checked={acceptTerms}
+                    onCheckedChange={(checked) => detailsForm.setValue('acceptTerms', !!checked)}
+                    disabled={isLoading}
+                    className="mt-1"
+                  />
+                  <Label
+                    htmlFor="acceptTerms"
+                    className="text-sm leading-5 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    I agree to the{' '}
+                    <Link
+                      href="/terms"
+                      className="font-medium text-primary hover:underline focus:outline-none focus:underline"
+                      target="_blank"
+                    >
+                      Terms of Service
+                    </Link>{' '}
+                    and{' '}
+                    <Link
+                      href="/privacy"
+                      className="font-medium text-primary hover:underline focus:outline-none focus:underline"
+                      target="_blank"
+                    >
+                      Privacy Policy
+                    </Link>
+                  </Label>
+                </div>
+                {detailsForm.formState.errors.acceptTerms && (
+                  <p className="text-sm text-destructive" role="alert">
+                    {detailsForm.formState.errors.acceptTerms.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Submit Button */}
+              <Button type="submit" className="w-full" disabled={isLoading || usernameAvailable === false}>
+                {isLoading ? (
+                  <>
+                    <LoadingSpinner size="sm" className="mr-2" />
+                    Creating account...
+                  </>
+                ) : (
+                  'Create account'
+                )}
+              </Button>
+            </form>
+          </>
+        )}
+      </div>
+
+      {/* Footer Links */}
+      <div className="text-center text-sm">
+        <span className="text-muted-foreground">Already have an account? </span>
+        <Link
+          href="/login"
+          className="font-medium text-primary hover:underline"
+        >
+          Sign in
+        </Link>
+      </div>
+
+      {/* Terms (only show on email step) */}
+      {step === 'email' && (
+        <p className="px-8 text-center text-xs text-muted-foreground">
+          By clicking continue, you agree to our{' '}
           <Link
-            href="/login"
-            className="font-medium text-primary hover:underline focus:outline-none focus:underline"
+            href="/terms"
+            className="underline underline-offset-4 hover:text-primary"
           >
-            Sign in
+            Terms of Service
+          </Link>{' '}
+          and{' '}
+          <Link
+            href="/privacy"
+            className="underline underline-offset-4 hover:text-primary"
+          >
+            Privacy Policy
           </Link>
-        </div>
-        <div className="text-xs text-muted-foreground text-center">
-          By creating an account, you&apos;ll start as a contributor and can earn trust levels through quality contributions.
-        </div>
-      </CardFooter>
-    </Card>
+          .
+        </p>
+      )}
+    </div>
   );
 }
