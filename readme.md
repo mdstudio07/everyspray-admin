@@ -93,6 +93,22 @@ src/
 - **Real-time Updates**: Live data synchronization
 - **Responsive Design**: Mobile-first approach
 
+## 📚 Documentation
+
+Comprehensive documentation is available in the `docs/` folder:
+
+**🎯 Start Here**:
+- **[docs/supabase-overview.md](docs/supabase-overview.md)** ⭐ - Complete database overview (one-liner for everything)
+- **[docs/readme.md](docs/readme.md)** - Documentation index and coverage assessment
+
+**Database Details**:
+- **[docs/database-catalog.md](docs/database-catalog.md)** - Complete catalog system (9 tables, 13 functions, 54 indexes)
+- **[docs/database-rbac.md](docs/database-rbac.md)** - RBAC system (4 tables, 11 functions, 6 indexes)
+
+**Other**:
+- **[docs/auth-flow-explained.md](docs/auth-flow-explained.md)** - Authentication flow and middleware
+- **[docs/project-overview.md](docs/project-overview.md)** - Project roadmap and development phases
+
 ## Development Progress
 
-See [project-overview.md](./project-overview.md) for detailed development phases and progress tracking.
+See [docs/project-overview.md](docs/project-overview.md) for detailed development phases and progress tracking.

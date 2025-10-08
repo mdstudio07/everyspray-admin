@@ -69,7 +69,7 @@ INSERT INTO public.role_permissions (role, permission) VALUES
 -- =====================================
 
 -- Verify all roles have at least one permission
-DO $validation$
+DO $$
 DECLARE
   role_count INTEGER;
   permission_count INTEGER;
@@ -90,7 +90,7 @@ BEGIN
 
   RAISE NOTICE 'Role permissions validation passed: % roles, % total permissions', role_count, permission_count;
 END
-$validation$;
+$$;
 
 -- =====================================
 -- PERMISSION SUMMARY QUERY

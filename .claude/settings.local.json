@@ -7,7 +7,9 @@
       "Bash(npm install:*)",
       "WebFetch(domain:ui.shadcn.com)",
       "Bash(npx shadcn@latest add:*)",
-      "Bash(psql:*)"
+      "Bash(psql:*)",
+      "Bash(npx supabase:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

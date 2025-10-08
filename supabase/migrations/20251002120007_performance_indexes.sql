@@ -185,7 +185,7 @@ COMMENT ON FUNCTION public.validate_rbac_indexes IS 'Validate that all essential
 -- =====================================
 
 -- Verify indexes were created successfully
-DO $verification$
+DO $$
 DECLARE
   index_count integer;
 BEGIN
@@ -201,8 +201,8 @@ BEGIN
   IF index_count < 6 THEN
     RAISE WARNING 'Expected 6 essential indexes, found %', index_count;
   END IF;
-END;
-$verification$;
+END
+$$;
 
 -- =====================================
 -- PERFORMANCE NOTES

@@ -1,9 +1,18 @@
 # 📊 Complete Supabase Database Documentation
 
 **Project**: EverySpray Admin Platform
-**Total Migration Files**: 8 (Optimized & Cleaned)
+**Total Migration Files**: 17 (8 RBAC + 9 Catalog)
 **Last Updated**: 2025-10-08
-**Status**: Production-Ready (Cleaned & Optimized)
+**Status**: Production-Ready (RBAC + Perfume Catalog Complete)
+
+---
+
+## 📚 Documentation Structure
+
+This file documents the **RBAC (Role-Based Access Control) system**.
+
+For the **Perfume Catalog System** (brands, notes, perfumes, workflow), see:
+👉 **[perfume-catalog-database.md](./perfume-catalog-database.md)**
 
 ---
 

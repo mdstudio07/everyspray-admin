@@ -268,7 +268,7 @@ COMMENT ON FUNCTION public.verify_rls_enabled IS 'Utility function to verify RLS
 -- =====================================
 
 -- Verify RLS is enabled on all tables
-DO $verification$
+DO $$
 DECLARE
   rls_count integer;
 BEGIN
@@ -284,5 +284,5 @@ BEGIN
   END IF;
 
   RAISE NOTICE 'RLS verification passed: RLS enabled on all % required tables', rls_count;
-END;
-$verification$;
+END
+$$;
