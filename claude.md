@@ -9,7 +9,9 @@
 ## Naming Conventions
 2. **Consistent naming throughout the project:**
    - **Functions/Variables/Classes**: PascalCase (e.g., `getUserData`, `ApiResponse`, `handleSubmitForm`)
-   - **File names**: kebab-case lowercase (e.g., `user-profile.tsx`, `api-service.ts`, `form-handler.js`)
+   - **File names**: kebab-case lowercase for ALL files (e.g., `user-profile.tsx`, `api-service.ts`, `form-handler.js`)
+   - **Documentation files**: kebab-case lowercase (e.g., `readme.md`, `claude.md`, `auth-flow-explained.md`)
+   - **NO UPPERCASE**: Never use UPPERCASE or PascalCase for file names (wrong: `README.md`, `CLAUDE.md`, `AUTH_FLOW_EXPLAINED.md`)
 
 ## Decision Making
 3. **Always ask for guidance when choosing between options:**
