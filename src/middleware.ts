@@ -95,22 +95,9 @@ function hasPathAccess(role: AppRole, pathname: string): boolean {
 function getUserRoleFromJWT(user: any): AppRole | null {
   if (!user) return null;
 
-  // Try to get role from user_metadata first (set during signup)
-  if (user?.user_metadata?.role) {
-    return user.user_metadata.role as AppRole;
-  }
 
-  // Try to get role from app_metadata (set by custom access token hook)
-  if (user?.app_metadata?.user_role) {
-    return user.app_metadata.user_role as AppRole;
-  }
+  return user?.claims?.user_role
 
-  // Fallback: check for role in raw_user_meta_data
-  if (user?.raw_user_meta_data?.role) {
-    return user.raw_user_meta_data.role as AppRole;
-  }
-
-  return null;
 }
 
 // =====================================
@@ -148,9 +135,9 @@ export async function middleware(request: NextRequest) {
   );
 
   // Get user from Supabase (JWT validation happens here)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+
+  const {data:user} = await supabase.auth.getClaims()
+
 
   const isAuthenticated = !!user;
   const isPublic = isPublicPath(pathname);
@@ -161,6 +148,7 @@ export async function middleware(request: NextRequest) {
   // =====================================
   if (isAuthenticated && isPublic) {
     const role = getUserRoleFromJWT(user);
+   
     const redirectUrl = request.nextUrl.clone();
 
     if (role && DEFAULT_DASHBOARD[role]) {
@@ -189,19 +177,17 @@ export async function middleware(request: NextRequest) {
   // =====================================
   if (isAuthenticated && !isPublic) {
     const role = getUserRoleFromJWT(user);
+    console.log(role)
 
-    if (!role) {
-      // No role found - redirect to login
-      const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = '/login';
-      return NextResponse.redirect(redirectUrl);
-    }
+    // If role is undefined or not a valid role, default to contributor
+    const validRoles: AppRole[] = ['super_admin', 'team_member', 'contributor'];
+    const effectiveRole: AppRole = role && validRoles.includes(role) ? role : 'contributor';
 
     // Check if user has access to this path
-    if (!hasPathAccess(role, pathname)) {
+    if (!hasPathAccess(effectiveRole, pathname)) {
       // Access denied - redirect to appropriate dashboard
       const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = DEFAULT_DASHBOARD[role] || '/contribute/dashboard';
+      redirectUrl.pathname = DEFAULT_DASHBOARD[effectiveRole];
       return NextResponse.redirect(redirectUrl);
     }
   }

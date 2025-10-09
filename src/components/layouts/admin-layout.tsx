@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Icons } from '@/lib/icons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -90,13 +90,15 @@ const superAdminItems = [
 
 function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, signOut } = useAuthStore();
   const isSuper = user ? isSuperAdmin(user.role) : false;
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
-  const handleLogout = () => {
-    signOut();
+  const handleLogout = async () => {
+    await signOut();
     setShowLogoutDialog(false);
+    router.push('/login');
   };
 
   return (
@@ -186,40 +188,44 @@ function AppSidebar() {
                 <span className="truncate text-xs">Admin User</span>
               </div>
               <div
-                onClick={() => setShowLogoutDialog(true)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowLogoutDialog(true);
+                }}
                 className="flex h-auto cursor-pointer items-center justify-center rounded-md p-1 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               >
                 <Icons.LogOut className="h-4 w-4" />
               </div>
-
-              {/* Logout Confirmation Dialog */}
-              <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle className="font-heading">Sign out</DialogTitle>
-                    <DialogDescription>
-                      Are you sure you want to sign out? You&apos;ll need to sign in again to access your account.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowLogoutDialog(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={handleLogout}
-                    >
-                      Sign out
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+
+        {/* Logout Confirmation Dialog - Moved outside SidebarMenuButton */}
+        <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="font-heading">Sign out</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to sign out? You&apos;ll need to sign in again to access your account.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowLogoutDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleLogout}
+              >
+                Sign out
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </SidebarFooter>
     </Sidebar>
   );

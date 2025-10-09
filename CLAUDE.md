@@ -127,14 +127,53 @@
     - **Operation Breaking**: Break large operations (like RBAC implementation) into smaller, committable chunks
     - **Status Monitoring**: Use `git status` frequently to track progress and ensure nothing is lost
 
-## Migration File Naming Convention
-15. **Supabase Migration Files:**
-    - **Format**: Use timestamp format `YYYYMMDDHHMMSS_description.sql` (e.g., `20251228143022_create_rbac_system.sql`)
+## Supabase Migration Rules - CRITICAL
+15. **NEVER Edit Existing Migration Files:**
+    - **❌ NEVER**: Edit or modify existing migration files that have been applied
+    - **✅ ALWAYS**: Create NEW migration files to fix or update database schema
+    - **Why**: Existing migrations may already be applied in production database
+    - **Pattern**: New migration should DROP/ALTER existing objects, then recreate with fixes
+
+    **Example - Fixing a function:**
+    ```sql
+    -- ❌ WRONG: Editing old migration file
+    -- File: 20251008150000_security_hardening.sql
+    -- (editing this file won't apply changes in production)
+
+    -- ✅ CORRECT: Create new migration
+    -- File: 20251009110237_fix_auth_hook_use_set_config.sql
+    CREATE OR REPLACE FUNCTION public.custom_access_token_hook(...)
+    -- New implementation with fixes
+    ```
+
+16. **Migration File Naming Convention:**
+    - **Format**: Use timestamp format `YYYYMMDDHHMMSS_description.sql`
+    - **Command**: `npx supabase migration new <descriptive-name>`
     - **Reasoning**: Supabase reads migrations in lexicographical order, timestamps ensure proper chronological execution
     - **Location**: Store in `supabase/migrations/` directory
     - **Ordering**: Never use 001, 002 format as it doesn't handle parallel development well
     - **Description**: Use descriptive names that explain the migration purpose
-    - **Example**: `20251228143022_create_rbac_schema.sql`, `20251228143045_setup_role_permissions.sql`
+    - **Examples**:
+      - `20251228143022_create_rbac_schema.sql`
+      - `20251228143045_setup_role_permissions.sql`
+      - `20251009110237_fix_auth_hook_use_set_config.sql`
+
+17. **NEVER Push Data to Production:**
+    - **❌ FORBIDDEN**: Never run commands that push data to production database
+    - **❌ FORBIDDEN**: Never use `INSERT`, `UPDATE`, `DELETE` statements to sync data
+    - **✅ ALLOWED**: Only push schema changes (migrations) via `npx supabase db push`
+    - **Why**: Data in production is live user data and must never be overwritten
+    - **Exception**: Seed data is ONLY for local development via `supabase/seed.sql`
+
+    **Safe commands:**
+    - `npx supabase db push` - Push schema migrations only
+    - `npx supabase db reset` - Reset LOCAL database only (never affects production)
+    - `npx supabase migration new` - Create new migration file
+
+    **Forbidden commands:**
+    - ❌ Any command that modifies production data directly
+    - ❌ Bulk data imports/exports to production
+    - ❌ Running seed files against production
 
 ## Commands to run for verification
 - Lint: `npm run lint` (if available)

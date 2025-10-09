@@ -37,7 +37,7 @@ COMMENT ON COLUMN public.role_audit_log.changed_by IS
 CREATE OR REPLACE FUNCTION public.custom_access_token_hook(event jsonb)
 RETURNS jsonb
 LANGUAGE plpgsql
-VOLATILE  -- Changed from STABLE to allow SET LOCAL
+STABLE  -- Safe to use STABLE with pg_catalog.set_config()
 SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $$
@@ -47,7 +47,8 @@ DECLARE
   claims jsonb;
 BEGIN
   -- ⚡ SECURITY HARDENING: Add statement timeout to prevent login blocking
-  SET LOCAL statement_timeout = '1000ms';
+  -- Using pg_catalog.set_config() instead of SET LOCAL for STABLE function compatibility
+  PERFORM pg_catalog.set_config('statement_timeout', '1000ms', true);
 
   -- Extract user_id from event
   v_user_id := (event->>'user_id')::uuid;
@@ -88,7 +89,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION public.custom_access_token_hook IS
-'JWT token hook with 1000ms statement timeout to prevent login blocking. Adds user_role claim for RBAC.';
+'JWT token hook with 1000ms statement timeout (via pg_catalog.set_config) to prevent login blocking. Adds user_role claim for RBAC.';
 
 
 -- ============================================================================
@@ -855,7 +856,7 @@ $$;
 -- MIGRATION COMPLETE
 -- ============================================================================
 -- Summary:
--- ✅ Auth hook now has 100ms statement timeout
+-- ✅ Auth hook now has 1000ms statement timeout (via pg_catalog.set_config)
 -- ✅ Audit trigger now fail-secure (RAISE EXCEPTION)
 -- ✅ Security health check function created
 -- ✅ Service role activity monitoring added

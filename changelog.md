@@ -2,46 +2,148 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Fix Auth Hook: STABLE → VOLATILE] - 2025-10-09
+## [Improve Auth Hook: Robust AMR Normalization] - 2025-10-09
 
-### Fixed - Auth Hook Production Error
-- **supabase/migrations/20251008150000_security_hardening.sql**: Changed function volatility
-  - **Before**: `STABLE` (incompatible with `SET LOCAL`)
-  - **After**: `VOLATILE` (allows `SET LOCAL statement_timeout`)
+### Enhanced - Production-Ready AMR Handling
+- **supabase/migrations/20251009115036_improve_auth_hook_amr_normalization.sql**: Robust amr normalization
+  - **Handles string arrays**: Converts `["password"]` → `[{"method": "password", "timestamp": 123}]`
+  - **Preserves object arrays**: Keeps existing `[{"method": "password", "timestamp": 123}]` as-is
+  - **Fallback for missing/invalid**: Adds default amr if missing or malformed
+  - **Performance**: Pre-calculates timestamp once (`now_ts`)
+  - **Error handling**: Safe fallback for all edge cases
+
+### Why This is Better
+The improved version handles **all possible amr formats**:
+1. ✅ Missing amr → Creates default object array
+2. ✅ String array `["password"]` → Converts to object array
+3. ✅ Object array `[{"method": "password"}]` → Preserves as-is
+4. ✅ Invalid/empty → Fallback to default
+5. ✅ Any error → Safe fallback
+
+### Implementation Details
+```sql
+-- Pre-calculate timestamp once (performance)
+now_ts bigint := EXTRACT(EPOCH FROM NOW())::bigint;
+
+-- Normalize string arrays to object arrays
+IF jsonb_typeof((new_claims->'amr')->0) = 'string' THEN
+  new_claims := jsonb_set(
+    new_claims,
+    '{amr}',
+    (
+      SELECT jsonb_agg(jsonb_build_object('method', elem::text, 'timestamp', now_ts))
+      FROM jsonb_array_elements_text(new_claims->'amr') AS t(elem)
+    ),
+    true
+  );
+END IF;
+```
+
+## [Fix Auth Hook AMR Claim Format] - 2025-10-09
+
+### Fixed - Auth Hook Schema Validation Error
+- **supabase/migrations/20251009113752_fix_auth_hook_amr_format.sql**: Fixed amr claim format
+  - **Error**: "amr.0: Invalid type. Expected: object, given: string"
+  - **Root Cause**: Supabase expects `amr` as array of objects, not array of strings
+  - **Before**: `amr: ["password"]` ❌
+  - **After**: `amr: [{"method": "password", "timestamp": 1234567890}]` ✅
+
+### What Changed
+```sql
+-- ❌ Old (incorrect format)
+amr: ["password"]
+
+-- ✅ New (correct format)
+amr: [
+  {
+    "method": "password",
+    "timestamp": 1234567890
+  }
+]
+```
+
+### Implementation
+- Uses `jsonb_build_array()` and `jsonb_build_object()` to create proper structure
+- Includes timestamp from `EXTRACT(EPOCH FROM NOW())::bigint`
+- Conforms to Supabase JWT schema requirements
+
+## [Fix Logout Functionality] - 2025-10-09
+
+### Fixed - Logout Not Working Properly
+- **src/components/layouts/contributor-layout.tsx**: Fixed logout functionality
+  - Added `useRouter` import and navigation to `/login` after logout
+  - Made `handleLogout` async and await `signOut()`
+  - Moved Dialog outside `SidebarMenuButton` to prevent event propagation issues
+  - Added `e.preventDefault()` and `e.stopPropagation()` to logout icon click
+
+- **src/components/layouts/admin-layout.tsx**: Fixed logout functionality
+  - Added `useRouter` import and navigation to `/login` after logout
+  - Made `handleLogout` async and await `signOut()`
+  - Moved Dialog outside `SidebarMenuButton` to prevent event propagation issues
+  - Added `e.preventDefault()` and `e.stopPropagation()` to logout icon click
+
+### Issues Fixed
+1. ✅ Logout now properly calls `supabase.auth.signOut()`
+2. ✅ Redirects to `/login` after successful logout
+3. ✅ Dialog renders correctly (moved outside nested button)
+4. ✅ Logout button click events properly handled
+5. ✅ Works in both contributor and admin dashboards
+
+## [Enhance Auth Hook with Claims Whitelisting] - 2025-10-09
+
+### Enhanced - Auth Hook Production-Ready Implementation
+- **supabase/migrations/20251009110237_fix_auth_hook_use_set_config.sql**: New migration with robust auth hook
+  - **Statement timeout**: `pg_catalog.set_config('statement_timeout', '1000', true)` (works with `STABLE`)
+  - **Claims whitelisting**: Only allows known claims (`iss`, `aud`, `exp`, `iat`, `sub`, `role`, `aal`, `session_id`, `email`, `phone`, `is_anonymous`)
+  - **Robust user_id extraction**: Supports both `event.user_id` and `claims.sub`
+  - **Guaranteed defaults**: Always sets `user_role`, `aal`, and `amr` claims
   - **Error Fixed**: "Error running hook URI: pg-functions://postgres/public/custom_access_token_hook"
 
-### Root Cause
-PostgreSQL does not allow `SET LOCAL` (session state modification) in `STABLE` functions:
-```sql
--- ❌ This fails
-CREATE FUNCTION foo() RETURNS text STABLE AS $$
-  SET LOCAL statement_timeout = '1000ms';  -- ERROR!
-$$;
+### Key Improvements
 
--- ✅ This works
-CREATE FUNCTION foo() RETURNS text VOLATILE AS $$
-  SET LOCAL statement_timeout = '1000ms';  -- OK!
-$$;
+#### 1. Claims Whitelisting (Security Best Practice)
+```sql
+-- Only allow known, safe claims
+allowed text[] := ARRAY[
+  'iss','aud','exp','iat','sub','role','aal','session_id','email','phone','is_anonymous'
+];
+
+-- Filter out any unexpected claims
+FOREACH claim IN ARRAY allowed LOOP
+  IF original_claims ? claim THEN
+    new_claims := jsonb_set(new_claims, ARRAY[claim], original_claims->claim, true);
+  END IF;
+END LOOP;
 ```
 
-### Why VOLATILE is Safe Here
-- Auth hooks are called **once per login** (not repeatedly)
-- `VOLATILE` tells PostgreSQL: "This function may modify session state"
-- Performance impact: negligible (auth happens once, not in loops)
-- Security: Still `SECURITY DEFINER` with explicit `search_path`
+#### 2. Robust User ID Extraction
+```sql
+-- Try event.user_id first, then fall back to claims.sub
+IF event ? 'user_id' THEN
+  v_user_id := NULLIF(event->>'user_id','')::uuid;
+ELSIF original_claims ? 'sub' THEN
+  v_user_id := NULLIF(original_claims->>'sub','')::uuid;
+END IF;
+```
+
+#### 3. STABLE Volatility with pg_catalog.set_config()
+- **Why**: `SET LOCAL` requires `VOLATILE` which is less restrictive
+- **Solution**: `pg_catalog.set_config()` works with `STABLE` (safer for hooks)
+- **Same behavior**: Third parameter `true` = local to transaction
 
 ### What Now Works in Production
-- ✅ Auth hook executes successfully
-- ✅ JWT tokens get `user_role` claim
-- ✅ Login works with proper role assignment
+- ✅ Auth hook executes successfully (with `STABLE` volatility)
+- ✅ JWT tokens get `user_role` claim (defaults to 'contributor')
+- ✅ Claims whitelisting prevents JWT claim injection attacks
+- ✅ Robust user_id extraction handles edge cases
 - ✅ 1000ms statement timeout prevents hanging
+- ✅ Guaranteed `aal` and `amr` claims for compatibility
 
-### Testing
-Local test confirms hook works:
-```sql
-SELECT custom_access_token_hook('{"user_id": "uuid", "claims": {}}');
--- Returns: {"claims": {"user_role": "contributor", ...}}
-```
+### Middleware Enhancement
+- **src/middleware.ts**: Updated to default to 'contributor' role if undefined
+  - Authenticated users no longer redirected to login if role is missing
+  - Graceful fallback to contributor access for worst-case scenarios
+  - Prevents redirect loops for authenticated users with missing role claims
 
 ## [Enable Real Authentication] - 2025-10-09
 
