@@ -272,66 +272,43 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     set({ isLoading: true });
 
     try {
-      // ⚠️ TEMPORARY DEVELOPMENT USER - REMOVE WHEN AUTH IS FULLY IMPLEMENTED
-      // This bypasses real authentication for development purposes
-      const tempUser: AuthUser = {
-        id: 'temp-super-admin-id',
-        email: 'admin@temp.com',
-        role: 'super_admin',
-        profile: null,
-        permissions: getPermissionsForRole('super_admin'),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      set({
-        user: tempUser,
-        userRole: 'super_admin',
-        permissions: getPermissionsForRole('super_admin'),
-        isLoading: false,
-        isInitialized: true
-      });
-
-      return;
-      // ⚠️ END TEMPORARY CODE - Uncomment code below when ready for real auth
-
       // Get initial session
-      // const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
 
-      // if (session?.user && session?.access_token) {
-      //   const role = extractRoleFromJWT(session.access_token);
+      if (session?.user && session?.access_token) {
+        const role = extractRoleFromJWT(session.access_token);
 
-      //   if (role) {
-      //     // Fetch user profile
-      //     const { data: profileData } = await supabase
-      //       .from('users_profile')
-      //       .select('*')
-      //       .eq('id', session.user.id)
-      //       .single();
+        if (role) {
+          // Fetch user profile
+          const { data: profileData } = await supabase
+            .from('users_profile')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
 
-      //     const authUser: AuthUser = {
-      //       id: session.user.id,
-      //       email: session.user.email || '',
-      //       role,
-      //       profile: profileData || null,
-      //       permissions: getPermissionsForRole(role),
-      //       created_at: session.user.created_at,
-      //       updated_at: session.user.updated_at || session.user.created_at,
-      //     };
+          const authUser: AuthUser = {
+            id: session.user.id,
+            email: session.user.email || '',
+            role,
+            profile: profileData || null,
+            permissions: getPermissionsForRole(role),
+            created_at: session.user.created_at,
+            updated_at: session.user.updated_at || session.user.created_at,
+          };
 
-      //     set({
-      //       user: authUser,
-      //       userRole: role,
-      //       permissions: getPermissionsForRole(role),
-      //       isLoading: false,
-      //       isInitialized: true
-      //     });
-      //   } else {
-      //     set({ user: null, userRole: null, permissions: [], isLoading: false, isInitialized: true });
-      //   }
-      // } else {
-      //   set({ user: null, userRole: null, permissions: [], isLoading: false, isInitialized: true });
-      // }
+          set({
+            user: authUser,
+            userRole: role,
+            permissions: getPermissionsForRole(role),
+            isLoading: false,
+            isInitialized: true
+          });
+        } else {
+          set({ user: null, userRole: null, permissions: [], isLoading: false, isInitialized: true });
+        }
+      } else {
+        set({ user: null, userRole: null, permissions: [], isLoading: false, isInitialized: true });
+      }
 
       // Listen for auth changes
       supabase.auth.onAuthStateChange(async (_event, session) => {

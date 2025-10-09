@@ -37,7 +37,7 @@ COMMENT ON COLUMN public.role_audit_log.changed_by IS
 CREATE OR REPLACE FUNCTION public.custom_access_token_hook(event jsonb)
 RETURNS jsonb
 LANGUAGE plpgsql
-STABLE
+VOLATILE  -- Changed from STABLE to allow SET LOCAL
 SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $$

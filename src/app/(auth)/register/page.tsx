@@ -16,6 +16,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 import { useAuthStore } from '@/lib/stores/auth';
+import { createClient as createSupabaseClient } from '@/lib/supabase/client';
 
 // =====================================
 // VALIDATION SCHEMAS
@@ -37,7 +38,10 @@ const detailsSchema = z.object({
     .string()
     .min(3, 'Username must be at least 3 characters long')
     .max(20, 'Username must be less than 20 characters')
-    .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
+    .regex(
+      /^[a-zA-Z0-9_]+$/,
+      'Username can only contain letters, numbers, and underscores'
+    ),
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters long')
@@ -47,7 +51,7 @@ const detailsSchema = z.object({
     ),
   acceptTerms: z
     .boolean()
-    .refine(val => val === true, 'You must accept the terms of service'),
+    .refine((val) => val === true, 'You must accept the terms of service'),
 });
 
 type EmailFormData = z.infer<typeof emailSchema>;
@@ -118,7 +122,9 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(
+    null
+  );
   const [checkingUsername, setCheckingUsername] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [generatedUsername, setGeneratedUsername] = useState('');
@@ -153,21 +159,19 @@ export default function RegisterPage() {
       setCheckingUsername(true);
       const timeoutId = setTimeout(async () => {
         try {
-          const response = await fetch('/api/check-username', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username }),
-          });
+          // Direct Supabase RPC call - no API middleman
+          const supabase = createSupabaseClient();
+          const { data: usernameExists, error } = await supabase.rpc(
+            'check_username_exists',
+            { p_username: username }
+          );
 
-          const data = await response.json();
-
-          if (response.ok) {
-            setUsernameAvailable(data.available);
-          } else {
-            console.error('Username check error:', data.error);
+          if (error) {
+            console.error('Username check error:', error);
             setUsernameAvailable(null);
+          } else {
+            // Function returns true if exists, we want available (inverse)
+            setUsernameAvailable(!usernameExists);
           }
         } catch (error) {
           console.error('Error checking username:', error);
@@ -218,47 +222,48 @@ export default function RegisterPage() {
     setCheckingEmail(true);
 
     try {
-      // Check if email already exists
-      const response = await fetch('/api/check-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: data.email }),
-      });
+      // Check if email already exists via direct Supabase RPC call
+      const supabase = createSupabaseClient();
+      const { data: emailExists, error: emailError } = await supabase.rpc(
+        'check_email_exists',
+        { p_email: data.email }
+      );
 
-      const result = await response.json();
-
-      if (!response.ok) {
+      if (emailError) {
+        console.error('Email check error:', emailError);
         toast.error('Error', {
-          description: result.error || 'Failed to check email',
+          description: 'Failed to check email availability',
           duration: 3000,
         });
         setCheckingEmail(false);
         return;
       }
 
-      if (result.exists) {
+      if (emailExists) {
         toast.error('Email Already Exists', {
-          description: 'This email is already registered. Please sign in instead.',
+          description:
+            'This email is already registered. Please sign in instead.',
           duration: 5000,
         });
         setCheckingEmail(false);
         return;
       }
 
-      // Email is available, generate username
-      const usernameResponse = await fetch('/api/generate-username', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: data.email }),
-      });
+      // Email is available, generate username from email
+      const usernameFromEmail = data.email
+        .split('@')[0]
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, '_')
+        .substring(0, 20);
 
-      const usernameResult = await usernameResponse.json();
+      // Check if generated username is available
+      const { data: usernameExists, error: usernameError } = await supabase.rpc(
+        'check_username_exists',
+        { p_username: usernameFromEmail }
+      );
 
-      if (!usernameResponse.ok) {
+      if (usernameError) {
+        console.error('Username check error:', usernameError);
         toast.error('Error', {
           description: 'Failed to generate username',
           duration: 3000,
@@ -267,10 +272,17 @@ export default function RegisterPage() {
         return;
       }
 
+      // If username exists, add a number suffix
+      let finalUsername = usernameFromEmail;
+      if (usernameExists) {
+        const randomSuffix = Math.floor(Math.random() * 9999);
+        finalUsername = `${usernameFromEmail}_${randomSuffix}`;
+      }
+
       // Set generated username and move to next step
       setUserEmail(data.email);
-      setGeneratedUsername(usernameResult.username);
-      detailsForm.setValue('username', usernameResult.username);
+      setGeneratedUsername(finalUsername);
+      detailsForm.setValue('username', finalUsername);
       setUsernameAvailable(true);
       setStep('details');
       setCheckingEmail(false);
@@ -397,7 +409,10 @@ export default function RegisterPage() {
             </div>
 
             {/* Email Form */}
-            <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-4">
+            <form
+              onSubmit={emailForm.handleSubmit(onEmailSubmit)}
+              className="space-y-4"
+            >
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -448,7 +463,10 @@ export default function RegisterPage() {
             </Button>
 
             {/* Details Form */}
-            <form onSubmit={detailsForm.handleSubmit(onDetailsSubmit)} className="space-y-4">
+            <form
+              onSubmit={detailsForm.handleSubmit(onDetailsSubmit)}
+              className="space-y-4"
+            >
               {/* Email Display (read-only) */}
               <div className="space-y-2">
                 <Label>Email</Label>
@@ -467,7 +485,11 @@ export default function RegisterPage() {
                   autoComplete="name"
                   disabled={isLoading}
                   {...detailsForm.register('fullName')}
-                  className={detailsForm.formState.errors.fullName ? 'border-destructive focus:border-destructive' : ''}
+                  className={
+                    detailsForm.formState.errors.fullName
+                      ? 'border-destructive focus:border-destructive'
+                      : ''
+                  }
                 />
                 {detailsForm.formState.errors.fullName && (
                   <p className="text-sm text-destructive" role="alert">
@@ -487,35 +509,52 @@ export default function RegisterPage() {
                     autoComplete="username"
                     disabled={isLoading}
                     {...detailsForm.register('username')}
-                    className={detailsForm.formState.errors.username ? 'border-destructive focus:border-destructive pr-10' : 'pr-10'}
+                    className={
+                      detailsForm.formState.errors.username
+                        ? 'border-destructive focus:border-destructive pr-10'
+                        : 'pr-10'
+                    }
                   />
                   {checkingUsername && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
                       <LoadingSpinner size="sm" />
                     </div>
                   )}
-                  {!checkingUsername && usernameAvailable === true && username && username.length >= 3 && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <Icons.Check className="h-4 w-4 text-green-500" />
-                    </div>
-                  )}
-                  {!checkingUsername && usernameAvailable === false && username && username.length >= 3 && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <Icons.Cross className="h-4 w-4 text-destructive" />
-                    </div>
-                  )}
+                  {!checkingUsername &&
+                    usernameAvailable === true &&
+                    username &&
+                    username.length >= 3 && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <Icons.Check className="h-4 w-4 text-green-500" />
+                      </div>
+                    )}
+                  {!checkingUsername &&
+                    usernameAvailable === false &&
+                    username &&
+                    username.length >= 3 && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <Icons.Cross className="h-4 w-4 text-destructive" />
+                      </div>
+                    )}
                 </div>
                 {detailsForm.formState.errors.username && (
                   <p className="text-sm text-destructive" role="alert">
                     {detailsForm.formState.errors.username.message}
                   </p>
                 )}
-                {!detailsForm.formState.errors.username && usernameAvailable === false && (
-                  <p className="text-sm text-destructive">Username is already taken</p>
-                )}
-                {!detailsForm.formState.errors.username && usernameAvailable === true && username !== generatedUsername && (
-                  <p className="text-sm text-green-600">Username is available</p>
-                )}
+                {!detailsForm.formState.errors.username &&
+                  usernameAvailable === false && (
+                    <p className="text-sm text-destructive">
+                      Username is already taken
+                    </p>
+                  )}
+                {!detailsForm.formState.errors.username &&
+                  usernameAvailable === true &&
+                  username !== generatedUsername && (
+                    <p className="text-sm text-green-600">
+                      Username is available
+                    </p>
+                  )}
               </div>
 
               {/* Password Field */}
@@ -562,7 +601,9 @@ export default function RegisterPage() {
                   <Checkbox
                     id="acceptTerms"
                     checked={acceptTerms}
-                    onCheckedChange={(checked) => detailsForm.setValue('acceptTerms', !!checked)}
+                    onCheckedChange={(checked) =>
+                      detailsForm.setValue('acceptTerms', !!checked)
+                    }
                     disabled={isLoading}
                     className="mt-1"
                   />
@@ -596,7 +637,11 @@ export default function RegisterPage() {
               </div>
 
               {/* Submit Button */}
-              <Button type="submit" className="w-full" disabled={isLoading || usernameAvailable === false}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isLoading || usernameAvailable === false}
+              >
                 {isLoading ? (
                   <>
                     <LoadingSpinner size="sm" className="mr-2" />
