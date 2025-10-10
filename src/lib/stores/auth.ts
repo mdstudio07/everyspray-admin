@@ -180,12 +180,29 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           console.warn('Could not fetch user profile:', profileError);
         }
 
+        // Normalize profile data to match UserProfile type
+        const normalizedProfile: UserProfile | null = profileData ? {
+          id: profileData.id,
+          username: profileData.username,
+          full_name: profileData.full_name,
+          avatar_url: profileData.avatar_url,
+          country: profileData.country,
+          bio: profileData.bio,
+          last_login: profileData.last_login,
+          is_suspended: profileData.is_suspended ?? false,
+          contribution_count: profileData.contribution_count ?? 0,
+          approval_rate: profileData.approval_rate ?? 0,
+          trust_level: (profileData.trust_level as 'new' | 'trusted' | 'expert') ?? 'new',
+          created_at: profileData.created_at ?? new Date().toISOString(),
+          updated_at: profileData.updated_at ?? new Date().toISOString(),
+        } : null;
+
         // Create auth user object
         const authUser: AuthUser = {
           id: data.user.id,
           email: data.user.email || '',
           role,
-          profile: profileData || null,
+          profile: normalizedProfile,
           permissions: getPermissionsForRole(role),
           created_at: data.user.created_at,
           updated_at: data.user.updated_at || data.user.created_at,
@@ -286,11 +303,28 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
             .eq('id', session.user.id)
             .single();
 
+          // Normalize profile data
+          const normalizedProfile: UserProfile | null = profileData ? {
+            id: profileData.id,
+            username: profileData.username,
+            full_name: profileData.full_name,
+            avatar_url: profileData.avatar_url,
+            country: profileData.country,
+            bio: profileData.bio,
+            last_login: profileData.last_login,
+            is_suspended: profileData.is_suspended ?? false,
+            contribution_count: profileData.contribution_count ?? 0,
+            approval_rate: profileData.approval_rate ?? 0,
+            trust_level: (profileData.trust_level as 'new' | 'trusted' | 'expert') ?? 'new',
+            created_at: profileData.created_at ?? new Date().toISOString(),
+            updated_at: profileData.updated_at ?? new Date().toISOString(),
+          } : null;
+
           const authUser: AuthUser = {
             id: session.user.id,
             email: session.user.email || '',
             role,
-            profile: profileData || null,
+            profile: normalizedProfile,
             permissions: getPermissionsForRole(role),
             created_at: session.user.created_at,
             updated_at: session.user.updated_at || session.user.created_at,
@@ -322,11 +356,28 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
               .eq('id', session.user.id)
               .single();
 
+            // Normalize profile data
+            const normalizedProfile: UserProfile | null = profileData ? {
+              id: profileData.id,
+              username: profileData.username,
+              full_name: profileData.full_name,
+              avatar_url: profileData.avatar_url,
+              country: profileData.country,
+              bio: profileData.bio,
+              last_login: profileData.last_login,
+              is_suspended: profileData.is_suspended ?? false,
+              contribution_count: profileData.contribution_count ?? 0,
+              approval_rate: profileData.approval_rate ?? 0,
+              trust_level: (profileData.trust_level as 'new' | 'trusted' | 'expert') ?? 'new',
+              created_at: profileData.created_at ?? new Date().toISOString(),
+              updated_at: profileData.updated_at ?? new Date().toISOString(),
+            } : null;
+
             const authUser: AuthUser = {
               id: session.user.id,
               email: session.user.email || '',
               role,
-              profile: profileData || null,
+              profile: normalizedProfile,
               permissions: getPermissionsForRole(role),
               created_at: session.user.created_at,
               updated_at: session.user.updated_at || session.user.created_at,
@@ -425,10 +476,27 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         return { error: authError.message };
       }
 
+      // Normalize updated profile
+      const normalizedProfile: UserProfile | null = updatedProfile ? {
+        id: updatedProfile.id,
+        username: updatedProfile.username,
+        full_name: updatedProfile.full_name,
+        avatar_url: updatedProfile.avatar_url,
+        country: updatedProfile.country,
+        bio: updatedProfile.bio,
+        last_login: updatedProfile.last_login,
+        is_suspended: updatedProfile.is_suspended ?? false,
+        contribution_count: updatedProfile.contribution_count ?? 0,
+        approval_rate: updatedProfile.approval_rate ?? 0,
+        trust_level: (updatedProfile.trust_level as 'new' | 'trusted' | 'expert') ?? 'new',
+        created_at: updatedProfile.created_at ?? new Date().toISOString(),
+        updated_at: updatedProfile.updated_at ?? new Date().toISOString(),
+      } : null;
+
       // Update user in store
       const updatedUser: AuthUser = {
         ...user,
-        profile: updatedProfile
+        profile: normalizedProfile
       };
 
       set({ user: updatedUser, isLoading: false });
@@ -455,9 +523,26 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         .single();
 
       if (profileData) {
+        // Normalize profile data
+        const normalizedProfile: UserProfile = {
+          id: profileData.id,
+          username: profileData.username,
+          full_name: profileData.full_name,
+          avatar_url: profileData.avatar_url,
+          country: profileData.country,
+          bio: profileData.bio,
+          last_login: profileData.last_login,
+          is_suspended: profileData.is_suspended ?? false,
+          contribution_count: profileData.contribution_count ?? 0,
+          approval_rate: profileData.approval_rate ?? 0,
+          trust_level: (profileData.trust_level as 'new' | 'trusted' | 'expert') ?? 'new',
+          created_at: profileData.created_at ?? new Date().toISOString(),
+          updated_at: profileData.updated_at ?? new Date().toISOString(),
+        };
+
         const updatedUser: AuthUser = {
           ...user,
-          profile: profileData
+          profile: normalizedProfile
         };
         set({ user: updatedUser });
       }

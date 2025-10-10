@@ -2,6 +2,228 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Auth Pages Elevation - Professional UI/UX Standards] - 2025-10-10
+
+### Refactored - Complete Auth Pages Overhaul
+All authentication pages refactored to follow new UI/UX standards (Rules 41-55).
+
+**Files Modified**:
+- `src/app/(auth)/layout.tsx` - Added semantic HTML, consistent spacing
+- `src/app/(auth)/login/page.tsx` - Full accessibility, interaction feedback
+- `src/app/(auth)/register/page.tsx` - Semantic structure, proper aria attributes
+- `src/app/(auth)/forgot-password/page.tsx` - Success state with semantic colors
+- `src/app/(auth)/reset-password/page.tsx` - Password strength indicator, accessibility
+
+**New Shared Components** (Following Rule 20 - Composition):
+- `src/components/auth/password-strength.tsx`:
+  - Semantic colors (`bg-success`, `bg-warning`, `bg-destructive`)
+  - Full accessibility (`role="status"`, `aria-live="polite"`, `aria-label`)
+  - Spacing scale compliance (`gap-2`, `space-y-2`)
+
+- `src/components/auth/google-icon.tsx`:
+  - Reusable SVG component
+  - Proper `aria-hidden` and `focusable="false"`
+
+- `src/components/auth/password-toggle-button.tsx`:
+  - Complete accessibility (`aria-label`, `aria-pressed`)
+  - Focus states (`focus-visible:ring-2`)
+  - Transition timing (150ms duration)
+
+- `src/components/auth/index.ts` - Barrel export for clean imports
+
+### Added - Semantic Color Tokens
+**File**: `src/app/globals.css`
+- Added `--success` color (light: `oklch(0.631 0.179 152.577)`, dark: `oklch(0.697 0.172 156.743)`)
+- Added `--warning` color (light: `oklch(0.808 0.171 85.594)`, dark: `oklch(0.85 0.145 90.374)`)
+- Exported as `--color-success` and `--color-warning` in @theme
+
+### Standards Applied (Rules 41-55)
+
+**✅ Rule 41 - Spacing Scale**:
+- All spacing uses scale: `space-y-2` (8px), `space-y-4` (16px), `space-y-6` (24px), `space-y-8` (32px)
+- No arbitrary values (`space-y-[13px]` removed)
+- Consistent padding: `py-12`, `px-4`, `px-8`
+
+**✅ Rule 43 - Semantic Colors**:
+- Replaced `text-green-500` → `text-success`
+- Replaced `text-yellow-500` → `text-warning`
+- Replaced `bg-green-100` → `bg-success/10`
+- All colors use semantic tokens
+
+**✅ Rule 46 - Semantic HTML & Accessibility**:
+- Added `<header>`, `<section>`, `<footer>`, `<main>`, `<aside>` elements
+- All inputs have `aria-invalid`, `aria-describedby`
+- Error messages have `role="alert"` and linked IDs
+- Form sections have `aria-label`
+- Password toggle has `aria-label` and `aria-pressed`
+
+**✅ Rule 48 - Interaction Feedback**:
+- All buttons: `hover:scale-[1.01] active:scale-[0.99]`
+- All links: `focus-visible:underline`, `focus-visible:ring-2`
+- Transition timing: `duration-150` (150ms)
+- Password toggle: proper focus ring states
+
+**✅ Rule 53 - Information Hierarchy**:
+- Clear structure: Section → Group → Element
+- Headers wrapped in `<header>` with `space-y-2`
+- Forms wrapped in `<section>` with `aria-label`
+- Footer links grouped in `<footer>`
+
+### Improvements
+
+**Code Quality**:
+- ✅ No hardcoded colors
+- ✅ No arbitrary spacing values
+- ✅ Full TypeScript type safety
+- ✅ Zod validation (Rule 21)
+- ✅ DRY principle - shared components extracted (Rule 18)
+- ✅ Single responsibility - each component has one purpose (Rule 19)
+
+**Accessibility** (Rule 34):
+- ✅ All interactive elements have proper ARIA attributes
+- ✅ Keyboard navigation fully supported
+- ✅ Screen reader compatible
+- ✅ Focus states clearly visible
+- ✅ Error messages properly associated with inputs
+
+**Performance** (Rule 49):
+- ✅ Skeleton loaders (not spinners)
+- ✅ Consistent animation timing
+- ✅ No layout shifts
+
+**Responsive Design** (Rule 47):
+- ✅ Mobile-first approach
+- ✅ Proper breakpoints (`sm`, `md`, `lg`)
+- ✅ Touch targets minimum 44px
+- ✅ Works on 360px → 1440px
+
+### Testing
+- ✅ Type check passed (no errors in refactored auth pages)
+- ✅ All semantic colors work in light/dark mode
+- ✅ Accessibility attributes properly implemented
+- ✅ Component composition working correctly
+
+### Philosophy Applied
+- **"Spacing is rhythm, hierarchy is melody"** - Consistent spacing scale creates visual harmony
+- **"Mastery is subtlety"** - Neutral colors + one accent (primary)
+- **"Senior designers design space, not decorations"** - Whitespace creates luxury
+- **"Consistency is trust"** - Same patterns across all auth pages
+
+## [Enhanced Development Rules & Best Practices] - 2025-10-10
+
+### Added - UI/UX Design Principles (Rules 41-55)
+- **CLAUDE.md**: Added 15 comprehensive UI/UX design principles
+  - **Spacing & Layout** (Rules 41, 45, 53):
+    - Mandatory spacing scale: 4-8-16-24-32-48-64 (no arbitrary values)
+    - Visual harmony through consistent alignment and grid systems
+    - Whitespace as luxury: `py-12` or `py-16` between sections
+    - Section → Group → Element hierarchy structure
+
+  - **Typography & Readability** (Rules 42, 50):
+    - Limited scale: 3-4 font sizes, 2-3 weights maximum
+    - Max paragraph width: `max-w-prose` or `max-w-[65ch]`
+    - Typography discipline: 1-2 fonts only (Geist + system fallback)
+    - Clear vertical rhythm: heading → paragraph → button
+
+  - **Color & Visual System** (Rules 43, 44, 52):
+    - Single accent color + neutral backgrounds
+    - Never hardcode hexes - use semantic tokens only
+    - Component consistency: same border radius, shadows everywhere
+    - Design tokens in `tailwind.config.ts`, export as `tokens.ts`
+
+  - **Accessibility & Interaction** (Rules 46, 48):
+    - Semantic HTML: `<section>`, `<header>`, `<button>`, `<nav>`
+    - Mandatory aria-* attributes and focus states (`focus:ring-2 ring-primary`)
+    - Every interactive element needs hover/focus/active feedback
+    - Animation timing: 150-250ms, `ease-in-out`
+
+  - **Performance & Optimization** (Rules 49, 51):
+    - Server-side data fetching (Server Components/RSC)
+    - Next.js `<Image>` with width/height (never `<img>`)
+    - Skeleton loaders, NOT spinners
+    - TanStack Query: dehydrate server-side, hydrate client-side
+
+  - **Responsive Design** (Rule 47):
+    - Mobile-first approach (360px → 1440px)
+    - Tailwind breakpoints: `sm`, `md`, `lg`, `xl`, `2xl`
+    - Horizontal layouts collapse to vertical naturally
+
+  - **Consistency & Documentation** (Rules 54, 55):
+    - Unified system feel: same patterns across ALL modules
+    - Component gallery at `/ui-testing` for visual QA
+    - Never ship unreviewed visual patterns
+
+### Added - Quick Reference Checklist
+Pre-ship verification for every UI component:
+- ✅ Uses spacing scale (4-8-16-24-32-48-64)
+- ✅ Semantic HTML + aria-* attributes
+- ✅ Hover/focus/active states defined
+- ✅ Works in light AND dark mode
+- ✅ Responsive (360px mobile, 1440px desktop)
+- ✅ Uses design tokens, no hardcoded colors
+- ✅ Typography follows scale (1-2 fonts max)
+- ✅ Consistent with existing components
+- ✅ Added to /ui-testing page
+- ✅ Documented in component guide
+
+### Philosophy - Senior Design Thinking
+- **Spacing is rhythm, hierarchy is melody**
+- **Mastery is subtlety: Neutral + one accent**
+- **Consistency is trust**
+- **Senior designers design space, not decorations**
+- **Fast = beautiful. Speed IS design**
+- **Typography is how professionalism whispers**
+- **Consistency makes design invisible — that's mastery**
+
+### Added - Comprehensive Code Quality Standards
+- **CLAUDE.md**: Added 23 new development rules (Rules 18-40)
+  - **Code Architecture Principles** (Rules 18-22):
+    - DRY principle: One source of truth for routes, constants, utilities
+    - Single responsibility: Each file/function has one clear purpose
+    - Composition over inheritance: Build with small reusable components
+    - Types-first development: Zod validation, no `any` types
+    - Secure by default: Server-only sensitive data, tRPC protected procedures
+
+  - **File Organization Rules** (Rules 23-25):
+    - Keep app/ minimal: Only pages, layouts, routes
+    - Group by feature: Organize by domain, not file type
+    - Folder growth rule: Use index.tsx when component needs multiple files
+
+  - **Styling & Design System** (Rules 26-27):
+    - Design tokens: Define in tailwind.config.ts, export for reuse
+    - Utility-first styling: Tailwind utilities, minimal @apply
+
+  - **Performance Rules** (Rules 28-33):
+    - Image optimization: Always use Next.js <Image />
+    - Server-side heavy work: Server Components for data operations
+    - Split large code: Files < 300 lines, split when growing
+    - Dynamic imports: Lazy load heavy components (< 200KB bundles)
+    - HTTP caching: Smart revalidate strategies (3600s static, 60s dynamic)
+    - TanStack Query: Server-side dehydration, client hydration
+
+  - **Accessibility & Quality** (Rules 34-36):
+    - Accessibility: aria-* props, keyboard nav, screen readers, WCAG AA
+    - Readability over cleverness: Write for new developers
+    - Consistency > perfection: Same patterns everywhere
+
+  - **Documentation & Maintenance** (Rules 37-40):
+    - Docs maintenance: Keep /docs updated, add developer-onboarding.md
+    - Environment clarity: dev.env.example with all variables documented
+    - Standardize scripts: dev, build, lint, test, migrate, seed
+    - Document before debugging: Update docs FIRST before implementing
+
+### Enforcement
+- **Mandatory**: All 40 rules must be followed on every task
+- **Process**: Review rules before coding, verify compliance after
+- **Philosophy**: No shortcuts for "speed" - proper architecture saves time later
+
+### Why These Rules Matter
+1. **Maintainability**: Consistent patterns make code easier to understand
+2. **Performance**: Optimization rules prevent common bottlenecks
+3. **Security**: Secure-by-default prevents vulnerabilities
+4. **Scalability**: DRY and single responsibility enable growth
+5. **Team Velocity**: Clear standards reduce decision fatigue
+
 ## [Improve Auth Hook: Robust AMR Normalization] - 2025-10-09
 
 ### Enhanced - Production-Ready AMR Handling

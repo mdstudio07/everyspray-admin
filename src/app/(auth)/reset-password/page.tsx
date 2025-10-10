@@ -13,82 +13,36 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { PasswordToggleButton, PasswordStrength } from '@/components/auth';
+
+/**
+ * Reset Password Page Component
+ *
+ * Allows users to set a new password after reset request.
+ * Follows all UI/UX standards (Rules 41-55)
+ */
 
 // =====================================
 // VALIDATION SCHEMA
 // =====================================
 
-const resetPasswordSchema = z.object({
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters long')
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      'Password must contain at least one lowercase letter, one uppercase letter, and one number'
-    ),
-  confirmPassword: z
-    .string()
-    .min(1, 'Please confirm your password'),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, 'Password must be at least 8 characters long')
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+        'Password must contain at least one lowercase letter, one uppercase letter, and one number'
+      ),
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
 
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
-
-// =====================================
-// PASSWORD STRENGTH INDICATOR
-// =====================================
-
-interface PasswordStrengthProps {
-  password: string;
-}
-
-function PasswordStrength({ password }: PasswordStrengthProps) {
-  const getStrength = (pass: string) => {
-    let strength = 0;
-    if (pass.length >= 8) strength++;
-    if (pass.length >= 12) strength++;
-    if (/[a-z]/.test(pass)) strength++;
-    if (/[A-Z]/.test(pass)) strength++;
-    if (/[0-9]/.test(pass)) strength++;
-    if (/[^A-Za-z0-9]/.test(pass)) strength++;
-    return strength;
-  };
-
-  const strength = getStrength(password);
-  const getColor = () => {
-    if (strength < 3) return 'bg-destructive';
-    if (strength < 5) return 'bg-yellow-500';
-    return 'bg-green-500';
-  };
-
-  const getLabel = () => {
-    if (strength < 3) return 'Weak';
-    if (strength < 5) return 'Medium';
-    return 'Strong';
-  };
-
-  if (!password) return null;
-
-  return (
-    <div className="space-y-1">
-      <div className="flex space-x-1">
-        {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            className={`h-1 w-full rounded ${
-              i < strength ? getColor() : 'bg-muted'
-            }`}
-          />
-        ))}
-      </div>
-      <p className="text-xs text-muted-foreground">
-        Password strength: <span className="font-medium">{getLabel()}</span>
-      </p>
-    </div>
-  );
-}
 
 // =====================================
 // RESET PASSWORD PAGE COMPONENT
@@ -137,7 +91,6 @@ export default function ResetPasswordPage() {
       setTimeout(() => {
         router.push('/login');
       }, 2000);
-
     } catch (error) {
       console.error('Password reset error:', error);
       toast.error('Reset Failed', {
@@ -153,116 +106,129 @@ export default function ResetPasswordPage() {
   // =====================================
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-8">
       {/* Header */}
-      <div className="space-y-2 text-center">
+      <header className="space-y-2 text-center">
         <h1 className="font-heading text-3xl font-bold tracking-tight">
           Reset your password
         </h1>
         <p className="text-sm text-muted-foreground">
           Enter your new password below
         </p>
-      </div>
+      </header>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Password Field */}
-        <div className="space-y-2">
-          <Label htmlFor="password">New Password</Label>
-          <div className="relative">
-            <Input
-              id="password"
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Create a strong password"
-              autoComplete="new-password"
-              disabled={isLoading}
-              {...register('password')}
-              className={
-                errors.password
-                  ? 'border-destructive focus:border-destructive pr-10'
-                  : 'pr-10'
-              }
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              disabled={isLoading}
-            >
-              {showPassword ? (
-                <Icons.Cross className="h-4 w-4" />
-              ) : (
-                <Icons.Check className="h-4 w-4" />
-              )}
-            </button>
+      {/* Form Section */}
+      <section aria-label="Reset password form">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+          {/* Password Field */}
+          <div className="space-y-2">
+            <Label htmlFor="password">New Password</Label>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Create a strong password"
+                autoComplete="new-password"
+                disabled={isLoading}
+                aria-invalid={errors.password ? 'true' : 'false'}
+                aria-describedby={
+                  errors.password ? 'password-error' : 'password-strength'
+                }
+                {...register('password')}
+                className={
+                  errors.password
+                    ? 'border-destructive focus-visible:ring-destructive pr-10'
+                    : 'pr-10'
+                }
+              />
+              <PasswordToggleButton
+                showPassword={showPassword}
+                onToggle={() => setShowPassword(!showPassword)}
+                disabled={isLoading}
+              />
+            </div>
+            {errors.password && (
+              <p
+                id="password-error"
+                className="text-sm text-destructive"
+                role="alert"
+              >
+                {errors.password.message}
+              </p>
+            )}
+            <div id="password-strength">
+              <PasswordStrength password={password} />
+            </div>
           </div>
-          {errors.password && (
-            <p className="text-sm text-destructive" role="alert">
-              {errors.password.message}
-            </p>
-          )}
-          <PasswordStrength password={password} />
-        </div>
 
-        {/* Confirm Password Field */}
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm New Password</Label>
-          <div className="relative">
-            <Input
-              id="confirmPassword"
-              type={showConfirmPassword ? 'text' : 'password'}
-              placeholder="Confirm your password"
-              autoComplete="new-password"
-              disabled={isLoading}
-              {...register('confirmPassword')}
-              className={
-                errors.confirmPassword
-                  ? 'border-destructive focus:border-destructive pr-10'
-                  : 'pr-10'
-              }
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              disabled={isLoading}
-            >
-              {showConfirmPassword ? (
-                <Icons.Cross className="h-4 w-4" />
-              ) : (
-                <Icons.Check className="h-4 w-4" />
-              )}
-            </button>
+          {/* Confirm Password Field */}
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirm New Password</Label>
+            <div className="relative">
+              <Input
+                id="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                placeholder="Confirm your password"
+                autoComplete="new-password"
+                disabled={isLoading}
+                aria-invalid={errors.confirmPassword ? 'true' : 'false'}
+                aria-describedby={
+                  errors.confirmPassword ? 'confirmPassword-error' : undefined
+                }
+                {...register('confirmPassword')}
+                className={
+                  errors.confirmPassword
+                    ? 'border-destructive focus-visible:ring-destructive pr-10'
+                    : 'pr-10'
+                }
+              />
+              <PasswordToggleButton
+                showPassword={showConfirmPassword}
+                onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
+                disabled={isLoading}
+              />
+            </div>
+            {errors.confirmPassword && (
+              <p
+                id="confirmPassword-error"
+                className="text-sm text-destructive"
+                role="alert"
+              >
+                {errors.confirmPassword.message}
+              </p>
+            )}
           </div>
-          {errors.confirmPassword && (
-            <p className="text-sm text-destructive" role="alert">
-              {errors.confirmPassword.message}
-            </p>
-          )}
-        </div>
 
-        {/* Submit Button */}
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <LoadingSpinner size="sm" className="mr-2" />
-              Resetting password...
-            </>
-          ) : (
-            'Reset password'
-          )}
-        </Button>
-      </form>
+          {/* Submit Button - Rule 48: Interactive feedback */}
+          <Button
+            type="submit"
+            className="w-full transition-all duration-150 hover:scale-[1.01] active:scale-[0.99]"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <LoadingSpinner size="sm" className="mr-2" />
+                Resetting password...
+              </>
+            ) : (
+              'Reset password'
+            )}
+          </Button>
+        </form>
+      </section>
 
-      {/* Footer Links */}
-      <div className="text-center">
-        <Link href="/login">
-          <Button variant="ghost" className="w-full">
+      {/* Footer - Rule 41: Consistent spacing */}
+      <footer>
+        <Link href="/login" className="block">
+          <Button
+            variant="ghost"
+            className="w-full transition-colors duration-150"
+          >
             <Icons.ChevronLeft className="mr-2 h-4 w-4" />
             Back to sign in
           </Button>
         </Link>
-      </div>
+      </footer>
     </div>
   );
 }

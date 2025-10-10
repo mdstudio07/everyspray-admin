@@ -9,7 +9,8 @@
       "Bash(npx shadcn@latest add:*)",
       "Bash(psql:*)",
       "Bash(npx supabase:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(wc:*)"
     ],
     "deny": [],
     "ask": []

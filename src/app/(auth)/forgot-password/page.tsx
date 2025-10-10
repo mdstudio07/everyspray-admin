@@ -13,6 +13,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
+/**
+ * Forgot Password Page Component
+ *
+ * Allows users to request password reset email.
+ * Follows all UI/UX standards (Rules 41-55)
+ */
+
 // =====================================
 // VALIDATION SCHEMA
 // =====================================
@@ -53,7 +60,7 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
 
     try {
-      // Check if email exists in the database
+      // Check if email exists
       const checkResponse = await fetch('/api/check-email', {
         method: 'POST',
         headers: {
@@ -73,17 +80,16 @@ export default function ForgotPasswordPage() {
         return;
       }
 
-      // If email doesn't exist, show error
       if (!checkResult.exists) {
         toast.error('Email Not Found', {
-          description: 'This email address is not registered. Please check and try again.',
+          description:
+            'This email address is not registered. Please check and try again.',
           duration: 5000,
         });
         setIsLoading(false);
         return;
       }
 
-      // Email exists, proceed with password reset
       // TODO: Implement password reset with Supabase
       // await supabase.auth.resetPasswordForEmail(data.email)
 
@@ -108,34 +114,38 @@ export default function ForgotPasswordPage() {
   };
 
   // =====================================
-  // RENDER COMPONENT
+  // SUCCESS STATE RENDER
   // =====================================
 
   if (emailSent) {
     return (
-      <div className="w-full space-y-6">
-        {/* Success State */}
-        <div className="space-y-2 text-center">
-          <div className="flex justify-center mb-4">
-            <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-              <Icons.Check className="h-6 w-6 text-green-600 dark:text-green-400" />
+      <div className="w-full space-y-8">
+        {/* Success Header */}
+        <header className="space-y-4 text-center">
+          {/* Success Icon - Rule 43: Semantic colors */}
+          <div className="flex justify-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-success/10">
+              <Icons.Check className="size-6 text-success" aria-hidden="true" />
             </div>
           </div>
-          <h1 className="font-heading text-3xl font-bold tracking-tight">
-            Check your email
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            We sent a password reset link to your email address.
-          </p>
-        </div>
+          <div className="space-y-2">
+            <h1 className="font-heading text-3xl font-bold tracking-tight">
+              Check your email
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              We sent a password reset link to your email address.
+            </p>
+          </div>
+        </header>
 
-        <div className="space-y-4">
-          <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm">
-            <p className="text-muted-foreground">
+        {/* Info Section - Rule 41: Consistent spacing */}
+        <section className="space-y-6" aria-label="Next steps">
+          <div className="rounded-lg border border-border bg-muted/50 p-4">
+            <p className="text-sm text-muted-foreground">
               If you don&apos;t see the email, check your spam folder or{' '}
               <button
                 onClick={() => setEmailSent(false)}
-                className="font-medium text-primary hover:underline"
+                className="font-medium text-primary hover:underline focus-visible:outline-none focus-visible:underline transition-colors duration-150"
               >
                 try again
               </button>
@@ -143,86 +153,106 @@ export default function ForgotPasswordPage() {
             </p>
           </div>
 
-          <Link href="/login">
-            <Button variant="outline" className="w-full">
+          <Link href="/login" className="block">
+            <Button
+              variant="outline"
+              className="w-full transition-all duration-150 hover:scale-[1.01] active:scale-[0.99]"
+            >
               <Icons.ChevronLeft className="mr-2 h-4 w-4" />
               Back to sign in
             </Button>
           </Link>
-        </div>
+        </section>
       </div>
     );
   }
 
+  // =====================================
+  // FORM STATE RENDER
+  // =====================================
+
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-8">
       {/* Header */}
-      <div className="space-y-2 text-center">
+      <header className="space-y-2 text-center">
         <h1 className="font-heading text-3xl font-bold tracking-tight">
           Forgot your password?
         </h1>
         <p className="text-sm text-muted-foreground">
           Enter your email address and we&apos;ll send you a reset link
         </p>
-      </div>
+      </header>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Email Field */}
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="name@example.com"
-            autoComplete="email"
+      {/* Form Section */}
+      <section aria-label="Password reset form">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+          {/* Email Field */}
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="name@example.com"
+              autoComplete="email"
+              disabled={isLoading}
+              aria-invalid={errors.email ? 'true' : 'false'}
+              aria-describedby={errors.email ? 'email-error' : undefined}
+              {...register('email')}
+              className={
+                errors.email
+                  ? 'border-destructive focus-visible:ring-destructive'
+                  : ''
+              }
+            />
+            {errors.email && (
+              <p id="email-error" className="text-sm text-destructive" role="alert">
+                {errors.email.message}
+              </p>
+            )}
+          </div>
+
+          {/* Submit Button - Rule 48: Interactive feedback */}
+          <Button
+            type="submit"
+            className="w-full transition-all duration-150 hover:scale-[1.01] active:scale-[0.99]"
             disabled={isLoading}
-            {...register('email')}
-            className={
-              errors.email
-                ? 'border-destructive focus:border-destructive'
-                : ''
-            }
-          />
-          {errors.email && (
-            <p className="text-sm text-destructive" role="alert">
-              {errors.email.message}
-            </p>
-          )}
-        </div>
+          >
+            {isLoading ? (
+              <>
+                <LoadingSpinner size="sm" className="mr-2" />
+                Sending reset link...
+              </>
+            ) : (
+              'Send reset link'
+            )}
+          </Button>
+        </form>
+      </section>
 
-        {/* Submit Button */}
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <LoadingSpinner size="sm" className="mr-2" />
-              Sending reset link...
-            </>
-          ) : (
-            'Send reset link'
-          )}
-        </Button>
-      </form>
-
-      {/* Footer Links */}
-      <div className="text-center space-y-2">
-        <Link href="/login">
-          <Button variant="ghost" className="w-full">
+      {/* Footer Links - Rule 41: Consistent spacing */}
+      <footer className="space-y-4">
+        <Link href="/login" className="block">
+          <Button
+            variant="ghost"
+            className="w-full transition-colors duration-150"
+          >
             <Icons.ChevronLeft className="mr-2 h-4 w-4" />
             Back to sign in
           </Button>
         </Link>
 
-        <div className="text-sm">
-          <span className="text-muted-foreground">Don&apos;t have an account? </span>
+        <div className="text-center text-sm">
+          <span className="text-muted-foreground">
+            Don&apos;t have an account?{' '}
+          </span>
           <Link
             href="/register"
-            className="font-medium text-primary hover:underline"
+            className="font-medium text-primary hover:underline focus-visible:outline-none focus-visible:underline transition-colors duration-150"
           >
             Sign up
           </Link>
         </div>
-      </div>
+      </footer>
     </div>
   );
 }
