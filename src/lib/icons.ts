@@ -38,6 +38,10 @@ export const Icons = {
   Sun: RadixIcons.SunIcon,
   Moon: RadixIcons.MoonIcon,
 
+  // Password visibility
+  Eye: RadixIcons.EyeOpenIcon,
+  EyeOff: RadixIcons.EyeClosedIcon,
+
   // System
   ExternalLink: RadixIcons.ExternalLinkIcon,
   Link: RadixIcons.Link2Icon,

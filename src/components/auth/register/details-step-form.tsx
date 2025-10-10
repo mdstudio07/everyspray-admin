@@ -13,7 +13,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { PasswordStrength, PasswordToggleButton } from '@/components/auth/password';
+import { FormErrorMessage } from '@/components/ui/form-error-message';
+import {
+  PasswordStrength,
+  PasswordToggleButton,
+} from '@/components/auth/password';
 import { UsernameField } from './username-field';
 import { Icons } from '@/lib/icons';
 
@@ -59,6 +63,29 @@ export function DetailsStepForm({
 
   const { password, username, acceptTerms } = watch();
 
+  // Calculate password strength (same logic as PasswordStrength component)
+  const getPasswordStrength = (pass: string): number => {
+    let strength = 0;
+    if (pass.length >= 8) strength++;
+    if (pass.length >= 12) strength++;
+    if (/[a-z]/.test(pass)) strength++;
+    if (/[A-Z]/.test(pass)) strength++;
+    if (/[0-9]/.test(pass)) strength++;
+    if (/[^A-Za-z0-9]/.test(pass)) strength++;
+    return strength;
+  };
+
+  const passwordStrength = getPasswordStrength(password || '');
+  const isPasswordStrong = passwordStrength >= 5;
+
+  // Clear password error when password becomes strong (no useEffect needed - we're already watching)
+  if (isPasswordStrong && errors.password) {
+    form.clearErrors('password');
+  }
+
+  // Check if form has any validation errors
+  const hasErrors = Object.keys(errors).length > 0;
+
   return (
     <>
       {/* Back button */}
@@ -75,13 +102,14 @@ export function DetailsStepForm({
       </Button>
 
       {/* Details Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-1" noValidate>
         {/* Email Display (read-only) */}
         <div className="space-y-2">
           <Label>Email</Label>
           <div className="rounded-md border border-input bg-muted px-3 py-2 text-sm">
             {userEmail}
           </div>
+          <div className="min-h-2 opacity-0"></div>
         </div>
 
         {/* Full Name Field */}
@@ -97,14 +125,18 @@ export function DetailsStepForm({
             aria-describedby={errors.fullName ? 'fullName-error' : undefined}
             {...register('fullName')}
             className={
-              errors.fullName ? 'border-destructive focus-visible:ring-destructive' : ''
+              errors.fullName
+                ? 'border-destructive focus-visible:ring-destructive'
+                : ''
             }
           />
-          {errors.fullName && (
-            <p id="fullName-error" className="text-sm text-destructive" role="alert">
-              {errors.fullName.message}
-            </p>
-          )}
+          {/* Reserved space for error - prevents layout shift */}
+          <div className="min-h-2">
+            <FormErrorMessage
+              id="fullName-error"
+              message={errors.fullName?.message}
+            />
+          </div>
         </div>
 
         {/* Username Field with Availability Check */}
@@ -145,13 +177,18 @@ export function DetailsStepForm({
               disabled={isLoading}
             />
           </div>
-          {errors.password && (
-            <p id="password-error" className="text-sm text-destructive" role="alert">
-              {errors.password.message}
-            </p>
-          )}
+          {/* Reserved space for error - prevents layout shift */}
           <div id="password-strength">
             <PasswordStrength password={password} />
+          </div>
+          <div className="min-h-2">
+            {/* Hide error when password is strong */}
+            {!isPasswordStrong && (
+              <FormErrorMessage
+                id="password-error"
+                message={errors.password?.message}
+              />
+            )}
           </div>
         </div>
 
@@ -161,11 +198,17 @@ export function DetailsStepForm({
             <Checkbox
               id="acceptTerms"
               checked={acceptTerms}
-              onCheckedChange={(checked) => setValue('acceptTerms', !!checked)}
+              onCheckedChange={(checked) => {
+                setValue('acceptTerms', !!checked);
+                // Clear error when user checks the box
+                if (checked && errors.acceptTerms) {
+                  form.clearErrors('acceptTerms');
+                }
+              }}
               disabled={isLoading}
               aria-invalid={errors.acceptTerms ? 'true' : 'false'}
               aria-describedby={errors.acceptTerms ? 'terms-error' : undefined}
-              className="mt-1"
+              className="mt-0"
             />
             <Label
               htmlFor="acceptTerms"
@@ -189,18 +232,20 @@ export function DetailsStepForm({
               </Link>
             </Label>
           </div>
-          {errors.acceptTerms && (
-            <p id="terms-error" className="text-sm text-destructive" role="alert">
-              {errors.acceptTerms.message}
-            </p>
-          )}
+          {/* Reserved space for error - prevents layout shift */}
+          {/* <div className="min-h-2">
+            <FormErrorMessage
+              id="terms-error"
+              message={errors.acceptTerms?.message}
+            />
+          </div> */}
         </div>
 
         {/* Submit Button */}
         <Button
           type="submit"
-          className="w-full transition-all duration-150 hover:scale-[1.01] active:scale-[0.99]"
-          disabled={isLoading || usernameAvailable === false}
+          className="w-full transition-all duration-150 hover:scale-[1.01] active:scale-[0.99] mt-7"
+          disabled={isLoading || usernameAvailable === false || hasErrors}
         >
           {isLoading ? (
             <>

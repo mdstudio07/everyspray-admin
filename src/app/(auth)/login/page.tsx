@@ -6,15 +6,15 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { toast } from 'sonner';
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { FormErrorMessage } from '@/components/ui/form-error-message';
 import { GoogleIcon, PasswordToggleButton } from '@/components/auth';
 
 import { useAuthStore } from '@/lib/stores/auth';
+import { TOAST_MESSAGES, toastHelpers } from '@/lib/constants/toast-messages';
 
 /**
  * Login Page Component
@@ -77,28 +77,20 @@ export default function LoginPage() {
       const { error } = await signIn(data.email, data.password);
 
       if (error) {
-        toast.error('Login Failed', {
-          description: error,
-          duration: 5000,
-        });
+        console.log(error);
+        toastHelpers.error(error);
         setIsLoading(false);
         return;
       }
 
-      toast.success('Welcome back!', {
-        description: 'You have been logged in successfully.',
-        duration: 3000,
-      });
+      toastHelpers.success(TOAST_MESSAGES.auth.login.success);
 
       setTimeout(() => {
         router.push('/contribute/dashboard');
       }, 1000);
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('Login Failed', {
-        description: 'An unexpected error occurred. Please try again.',
-        duration: 5000,
-      });
+      toastHelpers.error(TOAST_MESSAGES.auth.login.error);
       setIsLoading(false);
     }
   };
@@ -111,16 +103,10 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       // TODO: Implement Google OAuth with Supabase
-      toast.info('Coming Soon', {
-        description: 'Google Sign-In will be available soon.',
-        duration: 3000,
-      });
+      toastHelpers.info(TOAST_MESSAGES.auth.google.comingSoon);
     } catch (error) {
       console.error('Google sign-in error:', error);
-      toast.error('Authentication Failed', {
-        description: 'Unable to sign in with Google. Please try again.',
-        duration: 5000,
-      });
+      toastHelpers.error(TOAST_MESSAGES.auth.google.signInFailed);
     } finally {
       setIsLoading(false);
     }
@@ -172,7 +158,7 @@ export default function LoginPage() {
         {/* Email/Password Form - Rule 46: Semantic form structure */}
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="space-y-6"
+          className="space-y-4"
           noValidate
         >
           {/* Email Field */}
@@ -193,15 +179,13 @@ export default function LoginPage() {
                   : ''
               }
             />
-            {errors.email && (
-              <p
+            {/* Reserved space for error - prevents layout shift */}
+            <div className="min-h-1">
+              <FormErrorMessage
                 id="email-error"
-                className="text-sm text-destructive"
-                role="alert"
-              >
-                {errors.email.message}
-              </p>
-            )}
+                message={errors.email?.message}
+              />
+            </div>
           </div>
 
           {/* Password Field */}
@@ -239,21 +223,19 @@ export default function LoginPage() {
                 disabled={isLoading}
               />
             </div>
-            {errors.password && (
-              <p
+            {/* Reserved space for error - prevents layout shift */}
+            <div className="min-h-1">
+              <FormErrorMessage
                 id="password-error"
-                className="text-sm text-destructive"
-                role="alert"
-              >
-                {errors.password.message}
-              </p>
-            )}
+                message={errors.password?.message}
+              />
+            </div>
           </div>
 
           {/* Submit Button - Rule 48: Interactive feedback */}
           <Button
             type="submit"
-            className="w-full transition-all duration-150 hover:scale-[1.01] active:scale-[0.99]"
+            className="w-full transition-all duration-150 hover:scale-[1.01] active:scale-[0.99] mt-2"
             disabled={isLoading}
           >
             {isLoading ? (
@@ -283,7 +265,7 @@ export default function LoginPage() {
         </div>
 
         {/* Terms */}
-        <p className="px-8 text-center text-xs text-muted-foreground">
+        <p className="px-8 text-center text-xs leading-6 text-muted-foreground">
           By continuing, you agree to our{' '}
           <Link
             href="/terms"
@@ -291,6 +273,7 @@ export default function LoginPage() {
           >
             Terms of Service
           </Link>{' '}
+          <br />
           and{' '}
           <Link
             href="/privacy"

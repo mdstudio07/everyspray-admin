@@ -9,6 +9,7 @@ import { UseFormRegisterReturn } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { FormErrorMessage } from '@/components/ui/form-error-message';
 import { Icons } from '@/lib/icons';
 
 interface UsernameFieldProps {
@@ -30,9 +31,12 @@ export function UsernameField({
   generatedUsername,
   disabled = false,
 }: UsernameFieldProps) {
-  const showCheckIcon = !isChecking && isAvailable === true && username && username.length >= 3;
-  const showCrossIcon = !isChecking && isAvailable === false && username && username.length >= 3;
-  const showAvailableText = !error && isAvailable === true && username !== generatedUsername;
+  const showCheckIcon =
+    !isChecking && isAvailable === true && username && username.length >= 3;
+  const showCrossIcon =
+    !isChecking && isAvailable === false && username && username.length >= 3;
+  const showAvailableText =
+    !error && isAvailable === true && username !== generatedUsername;
   const showTakenText = !error && isAvailable === false;
 
   return (
@@ -50,13 +54,17 @@ export function UsernameField({
             error
               ? 'username-error'
               : isAvailable === true
-              ? 'username-available'
-              : isAvailable === false
-              ? 'username-taken'
-              : undefined
+                ? 'username-available'
+                : isAvailable === false
+                  ? 'username-taken'
+                  : undefined
           }
           {...register}
-          className={error ? 'border-destructive focus-visible:ring-destructive pr-10' : 'pr-10'}
+          className={
+            error
+              ? 'border-destructive focus-visible:ring-destructive pr-10'
+              : 'pr-10'
+          }
         />
 
         {/* Validation Indicators */}
@@ -77,29 +85,30 @@ export function UsernameField({
 
         {showCrossIcon && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <Icons.Cross className="h-4 w-4 text-destructive" aria-hidden="true" />
+            <Icons.Cross
+              className="h-4 w-4 text-destructive"
+              aria-hidden="true"
+            />
           </div>
         )}
       </div>
 
-      {/* Error Messages */}
-      {error && (
-        <p id="username-error" className="text-sm text-destructive" role="alert">
-          {error}
-        </p>
-      )}
+      {/* Reserved space for error/feedback - prevents layout shift */}
+      <div className="min-h-2">
+        <FormErrorMessage id="username-error" message={error} />
 
-      {showTakenText && (
-        <p id="username-taken" className="text-sm text-destructive">
-          Username is already taken
-        </p>
-      )}
+        {!error && showTakenText && (
+          <p id="username-taken" className="text-sm text-destructive">
+            Username is already taken
+          </p>
+        )}
 
-      {showAvailableText && (
-        <p id="username-available" className="text-sm text-success">
-          Username is available
-        </p>
-      )}
+        {!error && showAvailableText && (
+          <p id="username-available" className="text-sm text-success">
+            Username is available
+          </p>
+        )}
+      </div>
     </div>
   );
 }

@@ -2,6 +2,257 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Registration Form UX Improvements] - 2025-10-10
+
+### Enhanced - Registration Form Behavior
+**File**: `src/components/auth/register/details-step-form.tsx`
+
+**1. Password Error Auto-Clear (Smart Validation)**
+- Password error message now disappears when password becomes "Strong" (≥5/6 strength score)
+- Uses direct conditional check (no useEffect) - simpler and more performant
+- Leverages existing `watch()` from React Hook Form - no extra re-renders
+- Calculated strength criteria: length (8+, 12+), lowercase, uppercase, number, special char
+- **UX Benefit**: Visual confirmation that password meets requirements without form submission
+- User can continue immediately once password is strong, no need to refocus or submit to clear error
+
+**2. Terms Checkbox Error Auto-Clear**
+- Terms of service error clears immediately when user checks the box
+- Uses `form.clearErrors('acceptTerms')` on checkbox change
+- **UX Benefit**: Instant feedback that requirement is satisfied
+
+**3. Submit Button Disabled State**
+- Button disabled when form has ANY validation errors (`hasErrors` check)
+- Already disabled for: loading state, username unavailable
+- **Added**: Disabled when validation errors exist (fullName, username, password, acceptTerms)
+- **UX Benefit**: Prevents failed submission attempts, clearer user guidance
+
+### Technical Implementation
+- Direct conditional check: `if (isPasswordStrong && errors.password) form.clearErrors('password')`
+- No useEffect needed - already watching password with `watch()` from React Hook Form
+- Added `getPasswordStrength()` helper function (mirrors PasswordStrength component logic)
+- Added `isPasswordStrong` boolean (strength ≥ 5)
+- Added `hasErrors` check using `Object.keys(errors).length > 0`
+- Conditional rendering of password error: `{!isPasswordStrong && <FormErrorMessage />}`
+- **Performance**: Fewer re-renders, simpler code, better performance (Rule 59)
+
+### Benefits
+- ✅ **Better UX**: Instant feedback when requirements met
+- ✅ **Reduced Friction**: Errors disappear as user fixes them
+- ✅ **Clear Guidance**: Submit disabled until all validation passes
+- ✅ **Professional Feel**: Smart form behavior like modern apps
+- ✅ **Optimized Performance**: No unnecessary hooks, fewer re-renders, smoother experience
+
+### New Rule Added
+**Rule 59**: Performance-First Code Strategy - Make It Work, Then Make It Fast
+- Priority: Solution first, optimization second
+- Avoid unnecessary hooks when simpler solutions exist
+- Direct checks often better than useEffect for watched values
+- Less code = fewer re-renders = better performance
+
+## [Remove Sonner - Standardize on React Hot Toast] - 2025-10-10
+
+### Removed - Sonner Toast Library
+**Why**: Application was using TWO toast libraries (sonner + react-hot-toast)
+- Uninstalled `sonner` package completely
+- Deleted `src/components/ui/sonner.tsx` component
+- **Standardized**: Now using ONLY `react-hot-toast` throughout the app
+
+### Updated - Reset Password Page
+**File**: `src/app/(auth)/reset-password/page.tsx`
+- Replaced `import { toast } from 'sonner'` with toast config
+- Now uses `toastHelpers` and `TOAST_MESSAGES` config
+- Added `FormErrorMessage` component for consistency
+- Added layout shift prevention (min-h-[20px])
+- **Messages**:
+  - Success: `TOAST_MESSAGES.auth.resetPassword.success`
+  - Error: `TOAST_MESSAGES.auth.resetPassword.failed`
+
+### Benefits
+- ✅ **Single toast library** - No confusion about which to use
+- ✅ **Consistent API** - All toasts use same helper functions
+- ✅ **Centralized messages** - All messages in one config file
+- ✅ **Smaller bundle** - Removed unnecessary dependency
+- ✅ **Maintainability** - One system to learn and maintain
+
+## [File Naming Specificity + Toast Fix] - 2025-10-10
+
+### Enhanced - Naming Conventions (Rule 2)
+**File**: `CLAUDE.md`
+- Added "Specific over Generic" naming guideline
+- File names should indicate purpose, not be too generic
+- **Examples**:
+  - ❌ `error-message.tsx` → ✅ `form-error-message.tsx`
+  - ❌ `card.tsx` → ✅ `perfume-card.tsx`
+  - ❌ `modal.tsx` → ✅ `confirm-delete-modal.tsx`
+- **Benefits**: Easy to find files, understand purpose at a glance, better searchability
+
+### Renamed - FormErrorMessage Component
+**Files**:
+- Renamed: `src/components/ui/error-message.tsx` → `src/components/ui/form-error-message.tsx`
+- Updated component: `ErrorMessage` → `FormErrorMessage`
+- Updated all 5 imports across auth pages
+- More specific name indicates it's for form validation errors
+
+### Fixed - Toast Notification System
+**File**: `src/lib/constants/toast-messages.ts`
+- **Issue**: Toast helpers using `require()` didn't work in ES modules
+- **Solution**: Changed to direct import `import toast from 'react-hot-toast'`
+- Removed dynamic `require()` calls that caused toasts not to display
+- All toast types now working: error, warn, success, info
+
+## [DRY Refactor - Reusable Components & Toast Config] - 2025-10-10
+
+### Added - Reusable FormErrorMessage Component (Rule 58)
+**File**: `src/components/ui/form-error-message.tsx` (later renamed for specificity)
+- Single reusable component for all form error messages
+- Replaces 15+ repeated inline error `<p>` tags across auth pages
+- Consistent styling and accessibility (role="alert")
+- **Benefits**: Change styling in one place, affects all error messages
+- **Usage**: `<FormErrorMessage id="email-error" message={errors.email?.message} />`
+
+### Added - Centralized Toast Messages Config (Rule 58)
+**File**: `src/lib/constants/toast-messages.ts`
+- Single source of truth for ALL toast notification messages
+- **Sections**: auth, validation, general, network
+- **Auth Messages**: login, register, forgotPassword, resetPassword, google, verification
+- **Helper Functions**: `toastHelpers.error()`, `warn()`, `success()`, `info()`
+- **Benefits**:
+  - Know all toast messages in one place
+  - Edit message text without touching component code
+  - See why each message is shown with clear categorization
+  - Consistent message tone across entire app
+
+### Changed - Proper Toast Types Implementation
+**Files**: All auth pages and components
+- `toastHelpers.error()` - Critical failures, database errors (red icon)
+- `toastHelpers.warn()` - User mistakes with guidance (⚠️ warning icon)
+  - Email exists → Ask to login instead
+  - Username unavailable → Choose different one
+  - Email not found → Check and try again
+  - Rate limit → Wait time remaining
+- `toastHelpers.success()` - Successful operations (green icon)
+  - Login success
+  - Registration success → "Check email to verify"
+  - Reset link sent
+- `toastHelpers.info()` - Neutral info, coming soon features
+
+### Refactored - All Auth Pages Use New Components
+**Files**:
+- `src/app/(auth)/login/page.tsx` - ErrorMessage + toast config
+- `src/app/(auth)/register/page.tsx` - ErrorMessage + toast config
+- `src/app/(auth)/forgot-password/page.tsx` - ErrorMessage + toast config
+- `src/components/auth/register/email-step-form.tsx` - ErrorMessage
+- `src/components/auth/register/details-step-form.tsx` - ErrorMessage (4 fields)
+- `src/components/auth/register/username-field.tsx` - ErrorMessage
+
+**Before (Repeated 15+ times)**:
+```tsx
+{errors.email && (
+  <p id="email-error" className="text-sm text-destructive" role="alert">
+    {errors.email.message}
+  </p>
+)}
+```
+
+**After (DRY - Single component)**:
+```tsx
+<ErrorMessage id="email-error" message={errors.email?.message} />
+```
+
+### Added - Rule 58 to CLAUDE.md
+**File**: `CLAUDE.md`
+- **Rule 58**: DRY for UI Patterns → Reusable Components & Config
+- Extract repeated UI patterns into reusable components
+- Centralize messages in config files
+- Single source of truth for all user-facing content
+- Benefits: maintainability, consistency, easy updates
+- Examples with ❌ BAD and ✅ GOOD patterns
+- Toast message type guidelines
+- Updated Quick Reference Checklist (now includes DRY requirements)
+
+### Benefits of This Refactor
+- **Maintainability**: Change error styling in 1 place, not 15+ files
+- **Consistency**: All errors look identical automatically
+- **Clarity**: See all toast messages in one config file
+- **Smart Toast Types**: User sees appropriate icons/colors for each scenario
+- **DRY Principle**: No repeated code patterns
+- **Easy Updates**: Change message text without touching component code
+
+## [Auth System Enhancement - Toast, Icons & UX Fixes] - 2025-10-10
+
+### Changed - Password Toggle Icons
+**File**: `src/lib/icons.ts`, `src/components/auth/password/password-toggle-button.tsx`
+- Replaced Check/Cross icons with Eye/EyeOff icons for password visibility toggle
+- Added `Eye: RadixIcons.EyeOpenIcon` and `EyeOff: RadixIcons.EyeClosedIcon` to icon library
+- More intuitive password visibility indication
+
+### Added - Toast Notification System
+**Files**:
+- `src/components/ui/toaster.tsx` - New toast configuration component
+- `src/app/layout.tsx` - Integrated Toaster globally
+- **Package**: Installed `react-hot-toast` for clean, accessible notifications
+- **Configuration**: 6-second default duration with theme-aware styling
+- **Colors**: Uses semantic colors (success, destructive) with proper borders
+
+### Changed - Toast Notifications on All Auth Pages
+**Files**: `src/app/(auth)/login/page.tsx`, `src/app/(auth)/register/page.tsx`, `src/app/(auth)/forgot-password/page.tsx`
+- Replaced `sonner` with `react-hot-toast` for consistency
+- Clean, concise error/success messages (6s visibility)
+- All database errors and async operations now show toast notifications
+- **Examples**:
+  - Success: "Welcome back! Redirecting to dashboard..."
+  - Error: "Email already registered. Please sign in instead."
+  - Info: "Google Sign-Up coming soon!"
+
+### Enhanced - Forgot Password Flow
+**File**: `src/app/(auth)/forgot-password/page.tsx`
+- **Email Validation**: Uses `checkEmailExists` helper (same as registration)
+- **60-Second Timer**: Prevents spam with 1-minute cooldown between requests
+- **Email Change Detection**: Timer resets if user changes email address
+- **Visual Feedback**: Shows countdown timer with "Resend in Xs" message
+- **Button State**: Disabled during cooldown with timer display
+- **Toast Notifications**: Clear error/success messages for all states
+
+### Fixed - Layout Shift Prevention (Rule 56)
+**Files**: All auth pages and form components
+- `src/app/(auth)/login/page.tsx` - Email & password fields
+- `src/app/(auth)/forgot-password/page.tsx` - Email field
+- `src/components/auth/register/email-step-form.tsx` - Email field
+- `src/components/auth/register/details-step-form.tsx` - All fields (name, password, terms)
+- `src/components/auth/register/username-field.tsx` - Username with availability feedback
+- **Pattern**: Wrapped all inline errors in `<div className="min-h-[20px]">`
+- **Result**: Zero cumulative layout shift (CLS) when errors appear/disappear
+- **Professional UX**: Smooth, predictable, stable form interactions
+
+### Enhanced - Button Cursor Affordance (Rule 57)
+**File**: `src/components/ui/button.tsx`
+- Added `cursor-pointer` to all button variants globally
+- Added `disabled:cursor-not-allowed` for disabled state
+- Clear visual feedback that buttons are interactive
+- Applied to all 30+ buttons across auth pages automatically
+
+### Enhanced - Auth Layout Background Images
+**File**: `src/app/(auth)/layout.tsx`
+- **Light Mode**: `layout-bg.jpg` with 40% overlay
+- **Dark Mode**: `layout-bg-dark.png` with 70% overlay (darker, more atmospheric)
+- **Implementation**: Next.js Image component with theme-aware class switching
+- **Optimization**: `priority`, `quality={90}`, `sizes="50vw"`, `object-cover`
+- **Overlay**: `backdrop-blur-sm` with theme-specific opacity for text readability
+
+### Added - New CLAUDE.md Rules
+**File**: `CLAUDE.md`
+- **Rule 56**: Layout Shift Prevention - Reserve space for dynamic content
+- **Rule 57**: Interactive Element Cursors - Cursor pointer mandate
+- Updated Quick Reference Checklist with new verification items
+- Updated enforcement section (1-57 rules)
+
+### Testing Improvements
+- All auth pages now have consistent error handling
+- Toast notifications provide instant feedback for all operations
+- No layout shifts during form validation
+- Professional cursor feedback on all interactive elements
+- Smooth theme transitions for background images
+
 ## [Auth Pages Elevation - Professional UI/UX Standards] - 2025-10-10
 
 ### Refactored - Complete Auth Pages Overhaul

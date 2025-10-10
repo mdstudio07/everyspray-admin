@@ -28,9 +28,9 @@ export function PasswordToggleButton({
       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-sm transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50"
     >
       {showPassword ? (
-        <Icons.Cross className="h-4 w-4" aria-hidden="true" />
+        <Icons.EyeOff className="h-4 w-4" aria-hidden="true" />
       ) : (
-        <Icons.Check className="h-4 w-4" aria-hidden="true" />
+        <Icons.Eye className="h-4 w-4" aria-hidden="true" />
       )}
     </button>
   );

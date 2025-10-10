@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { FormErrorMessage } from '@/components/ui/form-error-message';
 import { GoogleIcon } from '@/components/auth';
 
 interface EmailFormData {
@@ -60,13 +61,15 @@ export function EmailStepForm({
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+          <span className="bg-background px-2 text-muted-foreground">
+            Or continue with
+          </span>
         </div>
       </div>
 
       {/* Email Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
-        <div className="space-y-2">
+        <div className="space-y-1">
           <Label htmlFor="email">Email</Label>
           <Input
             id="email"
@@ -78,14 +81,18 @@ export function EmailStepForm({
             aria-describedby={errors.email ? 'email-error' : undefined}
             {...register('email')}
             className={
-              errors.email ? 'border-destructive focus-visible:ring-destructive' : ''
+              errors.email
+                ? 'border-destructive focus-visible:ring-destructive'
+                : ''
             }
           />
-          {errors.email && (
-            <p id="email-error" className="text-sm text-destructive" role="alert">
-              {errors.email.message}
-            </p>
-          )}
+          {/* Reserved space for error - prevents layout shift */}
+          <div className="min-h-1">
+            <FormErrorMessage
+              id="email-error"
+              message={errors.email?.message}
+            />
+          </div>
         </div>
 
         <Button
@@ -105,7 +112,7 @@ export function EmailStepForm({
       </form>
 
       {/* Terms footer */}
-      <p className="px-8 text-center text-xs text-muted-foreground">
+      {/* <p className="px-8 text-center text-xs leading-6 text-muted-foreground">
         By continuing, you agree to our{' '}
         <Link
           href="/terms"
@@ -113,6 +120,7 @@ export function EmailStepForm({
         >
           Terms of Service
         </Link>{' '}
+        <br />
         and{' '}
         <Link
           href="/privacy"
@@ -121,7 +129,7 @@ export function EmailStepForm({
           Privacy Policy
         </Link>
         .
-      </p>
+      </p> */}
     </>
   );
 }

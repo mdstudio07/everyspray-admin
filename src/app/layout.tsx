@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/components/providers/theme-provider';
 import { TRPCReactProvider } from '@/lib/trpc/provider';
 import { AuthInitializer } from '@/components/providers/auth-initializer';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
+import { Toaster } from '@/components/ui/toaster';
 
 const inter = Inter({
   variable: "--font-inter",
@@ -40,6 +41,7 @@ export default function RootLayout({
               <AuthInitializer>
                 {children}
               </AuthInitializer>
+              <Toaster />
             </TRPCReactProvider>
           </ThemeProvider>
         </ErrorBoundary>

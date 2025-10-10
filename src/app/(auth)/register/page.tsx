@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from 'sonner';
 
 import { useAuthStore } from '@/lib/stores/auth';
+import { TOAST_MESSAGES, toastHelpers } from '@/lib/constants/toast-messages';
 import { useUsernameAvailability } from '@/hooks/auth/use-username-availability';
 import {
   checkEmailExists,
@@ -69,16 +69,10 @@ export default function RegisterPage() {
   const handleGoogleSignUp = async () => {
     setIsLoading(true);
     try {
-      toast.info('Coming Soon', {
-        description: 'Google Sign-Up will be available soon.',
-        duration: 3000,
-      });
+      toastHelpers.info(TOAST_MESSAGES.auth.google.comingSoon);
     } catch (error) {
       console.error('Google sign-up error:', error);
-      toast.error('Authentication Failed', {
-        description: 'Unable to sign up with Google. Please try again.',
-        duration: 5000,
-      });
+      toastHelpers.error(TOAST_MESSAGES.auth.google.signUpFailed);
     } finally {
       setIsLoading(false);
     }
@@ -95,19 +89,13 @@ export default function RegisterPage() {
       const { exists, error: emailError } = await checkEmailExists(data.email);
 
       if (emailError) {
-        toast.error('Error', {
-          description: emailError,
-          duration: 3000,
-        });
+        toastHelpers.error(emailError);
         setCheckingEmail(false);
         return;
       }
 
       if (exists) {
-        toast.error('Email Already Exists', {
-          description: 'This email is already registered. Please sign in instead.',
-          duration: 5000,
-        });
+        toastHelpers.warn(TOAST_MESSAGES.auth.register.emailExists);
         setCheckingEmail(false);
         return;
       }
@@ -117,10 +105,7 @@ export default function RegisterPage() {
         await generateUniqueUsername(data.email);
 
       if (usernameError) {
-        toast.error('Error', {
-          description: usernameError,
-          duration: 3000,
-        });
+        toastHelpers.error(usernameError);
         setCheckingEmail(false);
         return;
       }
@@ -132,10 +117,7 @@ export default function RegisterPage() {
       setCheckingEmail(false);
     } catch (error) {
       console.error('Email check error:', error);
-      toast.error('Error', {
-        description: 'An unexpected error occurred. Please try again.',
-        duration: 5000,
-      });
+      toastHelpers.error(TOAST_MESSAGES.auth.register.checkEmail);
       setCheckingEmail(false);
     }
   };
@@ -146,10 +128,7 @@ export default function RegisterPage() {
 
   const onDetailsSubmit = async (data: DetailsFormData) => {
     if (usernameAvailable === false) {
-      toast.error('Username Unavailable', {
-        description: 'Please choose a different username.',
-        duration: 3000,
-      });
+      toastHelpers.warn(TOAST_MESSAGES.auth.register.usernameUnavailable);
       return;
     }
 
@@ -163,28 +142,19 @@ export default function RegisterPage() {
       });
 
       if (error) {
-        toast.error('Registration Failed', {
-          description: error,
-          duration: 5000,
-        });
+        toastHelpers.error(error);
         setIsLoading(false);
         return;
       }
 
-      toast.success('Registration Successful!', {
-        description: 'Please check your email to verify your account.',
-        duration: 5000,
-      });
+      toastHelpers.success(TOAST_MESSAGES.auth.register.success);
 
       setTimeout(() => {
         router.push('/login');
       }, 2000);
     } catch (error) {
       console.error('Registration error:', error);
-      toast.error('Registration Failed', {
-        description: 'An unexpected error occurred. Please try again.',
-        duration: 5000,
-      });
+      toastHelpers.error(TOAST_MESSAGES.auth.register.failed);
       setIsLoading(false);
     }
   };

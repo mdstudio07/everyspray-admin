@@ -12,6 +12,15 @@
    - **File names**: kebab-case lowercase for ALL files (e.g., `user-profile.tsx`, `api-service.ts`, `form-handler.js`)
    - **Documentation files**: kebab-case lowercase (e.g., `readme.md`, `claude.md`, `auth-flow-explained.md`)
    - **NO UPPERCASE**: Never use UPPERCASE or PascalCase for file names (wrong: `README.md`, `CLAUDE.md`, `AUTH_FLOW_EXPLAINED.md`)
+   - **Specific over Generic**: File names should indicate purpose, not be too generic
+     - ❌ BAD: `error-message.tsx` (too generic - what kind of error?)
+     - ✅ GOOD: `form-error-message.tsx` (specific - form validation errors)
+     - ❌ BAD: `card.tsx` (what kind of card?)
+     - ✅ GOOD: `perfume-card.tsx` or `user-profile-card.tsx`
+     - ❌ BAD: `modal.tsx` (what does it show?)
+     - ✅ GOOD: `confirm-delete-modal.tsx` or `user-settings-modal.tsx`
+   - **Balance**: Not too long, but specific enough to remember purpose
+   - **Benefits**: Easy to find files, understand purpose at a glance, better searchability
 
 ## Decision Making
 3. **Always ask for guidance when choosing between options:**
@@ -467,13 +476,100 @@
     - 📘 **Why**: Documentation is how design becomes culture
 
 ## Enforcement
-**✅ MANDATORY**: All rules (1-55) must be followed on EVERY task
+**✅ MANDATORY**: All rules (1-58) must be followed on EVERY task
 - Before writing code: Review relevant rules
 - During code review: Check compliance
 - After completion: Verify all rules followed
 
 **⚠️ If unsure**: Ask before implementing
 **🚫 Never**: Skip rules for "speed" - it costs more later
+
+56. **Layout Shift Prevention → Zero CLS (Cumulative Layout Shift):**
+    - **MANDATORY**: Reserve space for error messages and dynamic content
+    - **Pattern**: Wrap all inline error messages in `<div className="min-h-[20px]">`
+    - **Why**: Prevents jarring layout shifts when errors appear/disappear
+    - **Application**: All form fields, validation messages, loading states
+    - **Example**:
+      ```tsx
+      <Input {...register('email')} />
+      {/* Reserved space - prevents layout shift */}
+      <div className="min-h-[20px]">
+        {errors.email && (
+          <p className="text-sm text-destructive">{errors.email.message}</p>
+        )}
+      </div>
+      ```
+    - 📘 **Why**: Professional UX = predictable, smooth, stable interfaces
+
+57. **Interactive Element Cursors → Visual Affordance:**
+    - **MANDATORY**: All interactive elements must show `cursor-pointer`
+    - **Buttons**: Added globally to button component (`cursor-pointer`)
+    - **Links**: Include `cursor-pointer` in hover states
+    - **Custom Interactive Elements**: Always add `cursor-pointer` class
+    - **Disabled State**: Use `disabled:cursor-not-allowed` for disabled elements
+    - **Why**: Clear visual feedback that element is clickable
+    - 📘 **Why**: Cursor changes are invisible cues that guide user behavior
+
+58. **DRY for UI Patterns → Reusable Components & Config:**
+    - **MANDATORY**: Extract repeated UI patterns into reusable components
+    - **Error Messages**: Use `<ErrorMessage>` component instead of inline `<p>` tags
+    - **Toast Messages**: Centralize all messages in `src/lib/constants/toast-messages.ts`
+    - **Config Files**: Create configuration files for repeated values/messages
+    - **Single Source of Truth**: All messages, errors, tooltips in one place
+    - **Benefits**: Easy to update, consistent styling, maintainable codebase
+    - **Example**:
+      ```tsx
+      // ❌ BAD: Repeated inline error messages
+      {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+      {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+
+      // ✅ GOOD: Reusable ErrorMessage component
+      <ErrorMessage id="email-error" message={errors.email?.message} />
+      <ErrorMessage id="password-error" message={errors.password?.message} />
+
+      // ❌ BAD: Hardcoded toast messages
+      toast.error('Email already registered. Please sign in instead.');
+
+      // ✅ GOOD: Centralized toast messages
+      toastHelpers.warn(TOAST_MESSAGES.auth.register.emailExists);
+      ```
+    - **Toast Message Types**:
+      - `toastHelpers.error()` - Critical failures, database errors
+      - `toastHelpers.warn()` - User mistakes (e.g., email exists - ask to login)
+      - `toastHelpers.success()` - Successful operations
+      - `toastHelpers.info()` - Neutral information, coming soon features
+    - 📘 **Why**: DRY isn't just about code - it's about maintainability
+
+59. **Performance-First Code Strategy → Make It Work, Then Make It Fast:**
+    - **Priority Order**: Solution first, optimization second
+    - **First**: Write code that works and solves the problem
+    - **Second**: Optimize for performance, reduce re-renders, improve smoothness
+    - **Never**: Sacrifice working code for premature optimization
+    - **Strategy**:
+      - Avoid unnecessary hooks (useEffect, useMemo, useCallback) when simpler solutions exist
+      - If already watching data with `watch()`, don't wrap in `useEffect`
+      - Direct conditional checks are often better than effect hooks
+      - Less code = less re-renders = better performance
+    - **Example - Password Validation**:
+      ```tsx
+      // ❌ BAD: Unnecessary useEffect and extra re-renders
+      useEffect(() => {
+        if (isPasswordStrong && errors.password) {
+          form.clearErrors('password');
+        }
+      }, [isPasswordStrong, errors.password, form]);
+
+      // ✅ GOOD: Direct check, simpler, fewer re-renders
+      if (isPasswordStrong && errors.password) {
+        form.clearErrors('password');
+      }
+      ```
+    - **Benefits**:
+      - Fewer re-renders = smoother UI
+      - Less code = easier to maintain
+      - Simpler logic = fewer bugs
+      - Better performance without complexity
+    - 📘 **Why**: Working code is the goal. Fast, smooth code is the craft.
 
 ## Quick Reference Checklist
 Before shipping ANY UI component, verify:
@@ -487,6 +583,10 @@ Before shipping ANY UI component, verify:
 - ✅ Consistent with existing components
 - ✅ Added to /ui-testing page
 - ✅ Documented in component guide
+- ✅ Reserved space for error messages (min-h-[20px])
+- ✅ Cursor pointer on all interactive elements
+- ✅ Reusable components for repeated UI patterns (ErrorMessage, etc.)
+- ✅ Centralized toast messages and configuration files
 
 ## Commands to run for verification
 - Lint: `npm run lint` (if available)

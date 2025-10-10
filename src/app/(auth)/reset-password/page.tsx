@@ -6,14 +6,15 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { toast } from 'sonner';
 import { Icons } from '@/lib/icons';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { FormErrorMessage } from '@/components/ui/form-error-message';
 import { PasswordToggleButton, PasswordStrength } from '@/components/auth';
+import { TOAST_MESSAGES, toastHelpers } from '@/lib/constants/toast-messages';
 
 /**
  * Reset Password Page Component
@@ -83,20 +84,14 @@ export default function ResetPasswordPage() {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      toast.success('Password Reset Successful!', {
-        description: 'Your password has been updated. You can now sign in.',
-        duration: 5000,
-      });
+      toastHelpers.success(TOAST_MESSAGES.auth.resetPassword.success);
 
       setTimeout(() => {
         router.push('/login');
       }, 2000);
     } catch (error) {
       console.error('Password reset error:', error);
-      toast.error('Reset Failed', {
-        description: 'Unable to reset your password. Please try again.',
-        duration: 5000,
-      });
+      toastHelpers.error(TOAST_MESSAGES.auth.resetPassword.failed);
       setIsLoading(false);
     }
   };
@@ -147,15 +142,10 @@ export default function ResetPasswordPage() {
                 disabled={isLoading}
               />
             </div>
-            {errors.password && (
-              <p
-                id="password-error"
-                className="text-sm text-destructive"
-                role="alert"
-              >
-                {errors.password.message}
-              </p>
-            )}
+            {/* Reserved space for error - prevents layout shift */}
+            <div className="min-h-[20px]">
+              <FormErrorMessage id="password-error" message={errors.password?.message} />
+            </div>
             <div id="password-strength">
               <PasswordStrength password={password} />
             </div>
@@ -188,15 +178,10 @@ export default function ResetPasswordPage() {
                 disabled={isLoading}
               />
             </div>
-            {errors.confirmPassword && (
-              <p
-                id="confirmPassword-error"
-                className="text-sm text-destructive"
-                role="alert"
-              >
-                {errors.confirmPassword.message}
-              </p>
-            )}
+            {/* Reserved space for error - prevents layout shift */}
+            <div className="min-h-[20px]">
+              <FormErrorMessage id="confirmPassword-error" message={errors.confirmPassword?.message} />
+            </div>
           </div>
 
           {/* Submit Button - Rule 48: Interactive feedback */}

@@ -1,17 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { toast } from 'sonner';
 import { Icons } from '@/lib/icons';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { FormErrorMessage } from '@/components/ui/form-error-message';
+import { checkEmailExists } from '@/lib/auth/registration-helpers';
+import { TOAST_MESSAGES, toastHelpers } from '@/lib/constants/toast-messages';
 
 /**
  * Forgot Password Page Component
@@ -40,10 +42,13 @@ type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [lastEmail, setLastEmail] = useState('');
+  const [resendTimer, setResendTimer] = useState(0);
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -52,40 +57,50 @@ export default function ForgotPasswordPage() {
     },
   });
 
+  const currentEmail = watch('email');
+
+  // Timer countdown effect
+  useEffect(() => {
+    if (resendTimer > 0) {
+      const interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [resendTimer]);
+
   // =====================================
   // FORM SUBMISSION HANDLER
   // =====================================
 
   const onSubmit = async (data: ForgotPasswordFormData) => {
+    // If email changed, allow resubmit
+    if (data.email !== lastEmail) {
+      setResendTimer(0);
+    }
+
+    // Check timer - prevent spam
+    if (resendTimer > 0 && data.email === lastEmail) {
+      toastHelpers.warn(
+        TOAST_MESSAGES.auth.forgotPassword.rateLimit(resendTimer)
+      );
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Check if email exists
-      const checkResponse = await fetch('/api/check-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: data.email }),
-      });
+      // Check if email exists using the existing helper
+      const { exists, error: emailError } = await checkEmailExists(data.email);
 
-      const checkResult = await checkResponse.json();
-
-      if (!checkResponse.ok) {
-        toast.error('Error', {
-          description: checkResult.error || 'Failed to verify email',
-          duration: 3000,
-        });
+      if (emailError) {
+        toastHelpers.error(emailError);
         setIsLoading(false);
         return;
       }
 
-      if (!checkResult.exists) {
-        toast.error('Email Not Found', {
-          description:
-            'This email address is not registered. Please check and try again.',
-          duration: 5000,
-        });
+      if (!exists) {
+        toastHelpers.warn(TOAST_MESSAGES.auth.forgotPassword.emailNotFound);
         setIsLoading(false);
         return;
       }
@@ -96,18 +111,14 @@ export default function ForgotPasswordPage() {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      toast.success('Email Sent!', {
-        description: 'Check your email for password reset instructions.',
-        duration: 5000,
-      });
+      toastHelpers.success(TOAST_MESSAGES.auth.forgotPassword.linkSent);
 
       setEmailSent(true);
+      setLastEmail(data.email);
+      setResendTimer(60); // 1 minute cooldown
     } catch (error) {
       console.error('Password reset error:', error);
-      toast.error('Request Failed', {
-        description: 'Unable to send reset email. Please try again.',
-        duration: 5000,
-      });
+      toastHelpers.error(TOAST_MESSAGES.auth.forgotPassword.failed);
     } finally {
       setIsLoading(false);
     }
@@ -125,7 +136,7 @@ export default function ForgotPasswordPage() {
           {/* Success Icon - Rule 43: Semantic colors */}
           <div className="flex justify-center">
             <div className="flex size-12 items-center justify-center rounded-full bg-success/10">
-              <Icons.Check className="size-6 text-success" aria-hidden="true" />
+              <Icons.Check className="size-8 text-success " aria-hidden="true" />
             </div>
           </div>
           <div className="space-y-2">
@@ -140,17 +151,25 @@ export default function ForgotPasswordPage() {
 
         {/* Info Section - Rule 41: Consistent spacing */}
         <section className="space-y-6" aria-label="Next steps">
-          <div className="rounded-lg border border-border bg-muted/50 p-4">
+          <div className="rounded-lg border border-border bg-muted/50 p-4 space-y-2">
             <p className="text-sm text-muted-foreground">
-              If you don&apos;t see the email, check your spam folder or{' '}
+              If you don&apos;t see the email, check your spam folder.
+            </p>
+            {resendTimer > 0 ? (
+              <p className="text-sm text-muted-foreground">
+                You can resend in{' '}
+                <span className="font-medium text-foreground">
+                  {resendTimer}s
+                </span>
+              </p>
+            ) : (
               <button
                 onClick={() => setEmailSent(false)}
-                className="font-medium text-primary hover:underline focus-visible:outline-none focus-visible:underline transition-colors duration-150"
+                className="text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:underline transition-colors duration-150 cursor-pointer"
               >
-                try again
+                Resend reset link
               </button>
-              .
-            </p>
+            )}
           </div>
 
           <Link href="/login" className="block">
@@ -185,7 +204,11 @@ export default function ForgotPasswordPage() {
 
       {/* Form Section */}
       <section aria-label="Password reset form">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-6"
+          noValidate
+        >
           {/* Email Field */}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -204,24 +227,30 @@ export default function ForgotPasswordPage() {
                   : ''
               }
             />
-            {errors.email && (
-              <p id="email-error" className="text-sm text-destructive" role="alert">
-                {errors.email.message}
-              </p>
-            )}
+            {/* Reserved space for error - prevents layout shift */}
+            <div className="min-h-[20px]">
+              <FormErrorMessage
+                id="email-error"
+                message={errors.email?.message}
+              />
+            </div>
           </div>
 
           {/* Submit Button - Rule 48: Interactive feedback */}
           <Button
             type="submit"
-            className="w-full transition-all duration-150 hover:scale-[1.01] active:scale-[0.99]"
-            disabled={isLoading}
+            className="w-full transition-all duration-150 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+            disabled={
+              isLoading || (resendTimer > 0 && currentEmail === lastEmail)
+            }
           >
             {isLoading ? (
               <>
                 <LoadingSpinner size="sm" className="mr-2" />
                 Sending reset link...
               </>
+            ) : resendTimer > 0 && currentEmail === lastEmail ? (
+              `Resend in ${resendTimer}s`
             ) : (
               'Send reset link'
             )}
