@@ -136,7 +136,10 @@ export default function ForgotPasswordPage() {
           {/* Success Icon - Rule 43: Semantic colors */}
           <div className="flex justify-center">
             <div className="flex size-12 items-center justify-center rounded-full bg-success/10">
-              <Icons.Check className="size-8 text-success " aria-hidden="true" />
+              <Icons.Check
+                className="size-8 text-success "
+                aria-hidden="true"
+              />
             </div>
           </div>
           <div className="space-y-2">
@@ -247,7 +250,7 @@ export default function ForgotPasswordPage() {
             {isLoading ? (
               <>
                 <LoadingSpinner size="sm" className="mr-2" />
-                Sending reset link...
+                Sending reset link
               </>
             ) : resendTimer > 0 && currentEmail === lastEmail ? (
               `Resend in ${resendTimer}s`

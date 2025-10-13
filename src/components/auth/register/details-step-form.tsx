@@ -250,7 +250,7 @@ export function DetailsStepForm({
           {isLoading ? (
             <>
               <LoadingSpinner size="sm" className="mr-2" />
-              Creating account...
+              Creating account
             </>
           ) : (
             'Create account'

@@ -2,6 +2,1089 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Complete Notes Management System] - 2025-10-13
+
+### Added - Full Notes CRUD System
+**Files Created**:
+- `src/lib/stores/note-table.ts` - Notes table state management with localStorage
+- `src/lib/stores/note-form.ts` - Notes form state management with sessionStorage
+- `src/components/admin/notes/note-table-columns.tsx` - Table column definitions with sorting
+- `src/components/admin/notes/note-table.tsx` - Full-featured data table component
+- `src/components/admin/notes/note-form.tsx` - Comprehensive form with validation
+- `src/app/admin/notes/page.tsx` - Notes listing page (updated)
+- `src/app/admin/notes/create/page.tsx` - Create note page
+- `src/app/admin/notes/[id]/page.tsx` - Edit note page
+
+**Features Implemented**:
+1. **Table Functionality**:
+   - Search by name, category, and scent profile
+   - Filter by status (draft, pending, approved, rejected)
+   - Filter by category (top, middle, base, linear)
+   - Sort by name, category, usage count, status, created date
+   - Pagination (10, 20, 30, 50 rows per page)
+   - Column visibility preferences (persisted to localStorage)
+   - Actions menu: View, Edit, Delete
+
+2. **Form Features**:
+   - Auto-generate slug from note name
+   - Category selection (top, middle, base, linear)
+   - Rich description textarea
+   - Scent profile tags system:
+     - Add custom tags
+     - Quick-add from 36 common tags
+     - Remove tags with X button
+     - Visual tag display with badges
+   - Commonly paired notes:
+     - Search existing notes
+     - Add/remove paired notes
+     - Dropdown search results
+   - Status management (draft, pending, approved, rejected)
+   - Verified data checkbox
+   - Session storage persistence (prevents data loss)
+   - Validation with zod schema
+   - Responsive design (mobile, tablet, desktop)
+
+3. **Data Structure**:
+   - Note name and slug
+   - Category (top/middle/base/linear)
+   - Description
+   - Scent profile tags array
+   - Commonly paired with notes array
+   - Status workflow
+   - Usage count tracking
+   - Verified data flag
+
+**Design Consistency**:
+- Follows same pattern as brands and perfumes systems
+- Full-width layout on listing page
+- Proper column alignment in table
+- Consistent spacing and typography
+- Works in light and dark modes
+- Mobile-responsive design
+
+**Result**: Complete notes management system matching the quality and feature set of brands system
+
+---
+
+## [Brand Table Alignment & Layout Fixes] - 2025-10-12
+
+### Fixed - Table Header and Content Alignment
+**Files**:
+- `src/components/admin/brands/brand-table-columns.tsx`
+- `src/app/admin/brands/page.tsx`
+
+**Problem**: Table headers and cell content were misaligned due to inconsistent padding and flex layouts.
+
+**Solution**:
+1. **All Headers**:
+   - Non-sortable: `<div className="flex items-center">Header Text</div>`
+   - Sortable: Button with `h-auto p-0 hover:bg-transparent` to remove default padding
+2. **All Cells**:
+   - Wrapped in `<div className="flex items-center">` for vertical centering
+   - Multi-line cells (like name + slug): `<div className="flex flex-col justify-center">`
+
+**Updated Columns**:
+- Logo: Wrapped header in flex div
+- Name: Added `h-auto p-0` to button, `flex-col justify-center` to cell
+- Country: Added `h-auto p-0` to button, flex wrapper to cell
+- Founder: Wrapped header and cell in flex divs
+- Founded Year: Added `h-auto p-0` to button, flex wrapper to cell
+- Perfumes Count: Added `h-auto p-0` to button, flex wrapper to cell
+- Status: Wrapped header and cell in flex divs
+- Created: Added `h-auto p-0` to button, flex wrapper to cell
+- Actions: Wrapped header and cell in flex divs
+
+**Result**: Perfect vertical alignment between headers and content across all columns
+
+### Changed - Full Width Layout for Listing Pages
+**File**: `src/app/admin/brands/page.tsx`
+
+**Change**:
+- Before: `container mx-auto` (limited max-width)
+- After: `w-full` (full viewport width)
+
+**Responsive Padding Maintained**: `px-4 sm:px-6 lg:px-8`
+
+**Benefits**:
+- More space for table content
+- Better use of screen real estate
+- Consistent with modern admin dashboard patterns
+
+---
+
+## [Notes Data Model - Initial Setup] - 2025-10-12
+
+### Added - Fragrance Notes Data Layer
+**File**: `src/lib/data/dummy-notes.ts`
+
+**Features**:
+- **Note Interface**: Complete type definition with all required fields
+- **Categories**: 4 types (top, middle, base, linear)
+- **35 Notes**: 10 top notes, 10 middle notes, 10 base notes, 5 linear notes
+- **Realistic Data**: Professional fragrance notes (Bergamot, Rose, Vanilla, Oud, etc.)
+- **Scent Profiles**: Multi-tag system (citrus, floral, woody, spicy, etc.)
+- **Pairing Suggestions**: Commonly paired with other notes
+- **Usage Tracking**: How many perfumes use each note
+
+**Helper Functions**:
+- `generateDummyNotes()` - Generate notes with realistic data
+- `getNoteById()` - Get note by ID for route persistence
+- `filterNotes()` - Search by name, category, scent profile
+- `sortNotes()` - Sort by any field
+- `getApprovedNotes()` - Get only approved notes
+- `searchNotes()` - Fuzzy search for autocomplete
+- `getNotesByCategory()` - Filter by category
+
+**Data Structure**:
+```typescript
+interface Note {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  category: 'top' | 'middle' | 'base' | 'linear';
+  scentProfile: string[];
+  commonlyPairedWith: string[];
+  status: 'draft' | 'pending_approval' | 'approved' | 'rejected';
+  verifiedData: boolean;
+  usageCount: number;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  approvedBy?: string;
+  approvedAt?: string;
+}
+```
+
+**Next Steps**:
+- Create notes table store
+- Create notes table columns and component
+- Create notes listing/create/edit pages
+- Apply same alignment fixes as brands
+
+---
+
+## [Brand Management System - Complete Implementation] - 2025-10-11
+
+### Summary
+Complete brand management system following the perfume pattern with all lessons learned applied from the start. Includes listing, create, edit pages with professional UI, form persistence, and image upload handling.
+
+### Files Created
+
+#### Data Layer
+**File**: `src/lib/data/dummy-brands.ts`
+- Enhanced `Brand` interface with all required fields (logo, bannerImage, foundedYear, founder, website, status, verifiedData, timestamps)
+- Dynamic brand generator function (30 luxury brands: Chanel, Dior, Creed, Tom Ford, etc.)
+- Helper functions: `generateDummyBrands()`, `getBrandById()`, `filterBrands()`, `sortBrands()`, `getApprovedBrands()`, `searchBrands()`
+- Proper slug generation and realistic placeholder images
+
+#### State Management
+**File**: `src/lib/stores/brand-table.ts`
+- Zustand store with localStorage persistence for table preferences (pageSize, column visibility)
+- Pagination, sorting, filtering, and search functionality
+- Persists only user preferences (not data) to localStorage
+- Full CRUD operations: `refreshData()`, `deleteBrand()`, `setSearchQuery()`, `setStatusFilter()`
+
+**File**: `src/lib/stores/brand-form.ts`
+- Zustand store with sessionStorage persistence for form data
+- Prevents data loss on accidental navigation
+- Form state: `BrandFormData` with all brand fields
+- Actions: `setFormData()`, `setField()`, `loadBrand()`, `resetForm()`, `clearForm()`
+- Clears on successful submission
+
+**File**: `src/lib/stores/brand-image-upload.ts`
+- Manages logo and banner image uploads separately
+- Preview URLs, upload status, file validation
+- Actions: `setLogo()`, `setBanner()`, `removeLogo()`, `removeBanner()`, `loadExistingImages()`
+- Helper functions: `createImagePreview()`, `validateImageFile()`
+- Image validation: max 5MB, JPEG/PNG/WebP only
+- Recommended dimensions: Logo 400x400px (1:1), Banner 1200x400px (3:1)
+
+#### Components
+**File**: `src/components/admin/brands/brand-table-columns.tsx`
+- Sortable columns: logo, name (with slug), country, founder, foundedYear, perfumeCount, status, createdAt
+- Actions dropdown: View, Edit, Delete with proper routing
+- Status badges with color coding (draft, pending, approved, rejected)
+- Logo preview with 40x40px thumbnail
+
+**File**: `src/components/admin/brands/brand-table.tsx`
+- Professional data table using TanStack Table v8
+- Search by name, country, founder
+- Status filter dropdown
+- Pagination controls (10/20/30/50 rows per page)
+- Results summary with active search badge
+- Responsive design (mobile, tablet, desktop)
+
+**File**: `src/components/admin/brands/brand-form.tsx`
+- Comprehensive form for create/edit modes
+- Zod validation schema with proper error messages
+- **Image Upload Section**: Logo + Banner with preview, remove, validation
+- **Basic Information Section**: Name, Slug (auto-generated), Country, Founded Year, Founder, Website, Description
+- **Status & Settings Section**: Status dropdown, Verified Data checkbox
+- Auto-save to sessionStorage with 500ms debounce
+- Slug auto-generation from name (create mode only)
+- Native textarea with proper Tailwind styling (no Textarea component needed)
+- Layout shift prevention: `min-h-[20px]` reserved space for error messages
+- Proper form validation and submission handling
+
+#### Pages
+**File**: `src/app/admin/brands/page.tsx`
+- Main listing page with header, search, filters, and table
+- "Create Brand" button with proper routing
+- Responsive container layout
+- Back navigation breadcrumb
+
+**File**: `src/app/admin/brands/create/page.tsx`
+- Brand creation page with BrandForm in create mode
+- Form state cleared on mount for fresh start
+- Success toast and redirect to listing on successful creation
+- Confirmation dialog on cancel/back
+
+**File**: `src/app/admin/brands/[id]/page.tsx`
+- Brand edit page with BrandForm in edit mode
+- Loads brand data by ID from URL params
+- Loading state with spinner
+- "Brand Not Found" error state
+- Form pre-populated with existing brand data
+- Images loaded from existing URLs
+- Success toast and redirect on successful update
+
+### Design Improvements Applied from Perfumes
+
+#### ✅ Layout & Spacing
+- Equal-width grid layouts: `grid-cols-1 sm:grid-cols-2` for two-column fields
+- Consistent spacing: `gap-4` between fields, `space-y-2` within field groups
+- Reserved space for error messages: `min-h-[20px]` prevents layout shifts
+- Full-width selects: `className="w-full"` on all SelectTrigger components
+
+#### ✅ Form Persistence
+- sessionStorage for form data (survives page refresh, clears on tab close)
+- localStorage for table preferences (persists across sessions)
+- Debounced auto-save (500ms) to prevent performance issues
+- Clear on successful submission
+
+#### ✅ Proper Button Types
+- All non-submit buttons have `type="button"` to prevent form submission
+- Cancel, Back, Remove Image buttons properly typed
+
+#### ✅ Route Persistence
+- `getBrandById()` function ensures brand data loads correctly on direct URL access
+- Proper error handling for missing brands
+
+#### ✅ Image Handling
+- Preview before upload
+- File validation (size, type)
+- Remove functionality with confirmation
+- Recommended dimensions displayed
+
+#### ✅ TypeScript & Validation
+- No `any` types - used `unknown` or proper type assertions
+- Zod schemas for runtime validation
+- Proper type inference from schemas
+
+### Features
+- **Search**: Real-time search by name, country, founder
+- **Filters**: Status filter (draft, pending, approved, rejected)
+- **Sorting**: Sort by name, country, founded year, perfume count, created date
+- **Pagination**: 10/20/30/50 rows per page with page navigation
+- **CRUD**: Create, Read, Update, Delete operations (Delete is simulated)
+- **Image Upload**: Logo and banner with preview, validation, remove
+- **Form Validation**: Comprehensive Zod validation with helpful error messages
+- **Auto-save**: Debounced form persistence to prevent data loss
+- **Responsive**: Mobile, tablet, desktop layouts
+- **Accessibility**: Proper labels, ARIA attributes, keyboard navigation
+
+### Lessons Applied
+1. ✅ No layout shifts - reserved space for all dynamic content
+2. ✅ Equal-width fields in grid layouts
+3. ✅ Full-width selects matching input widths
+4. ✅ Proper button types to prevent form submission
+5. ✅ Debounced persistence to avoid infinite loops
+6. ✅ sessionStorage for forms, localStorage for preferences
+7. ✅ Helper functions for route persistence
+8. ✅ Native textarea with Tailwind classes (no custom component)
+9. ✅ Proper TypeScript types (no `any`)
+10. ✅ Comprehensive validation with user-friendly messages
+
+### Testing
+- ✅ TypeScript compilation: No errors
+- ✅ Build: Successful with only image optimization warnings
+- ✅ Pages generated: All 3 brand pages built successfully
+  - `/admin/brands` - 8.39 kB (listing)
+  - `/admin/brands/[id]` - 2.88 kB (edit - dynamic)
+  - `/admin/brands/create` - 953 B (create)
+- ✅ First Load JS: Within acceptable limits (173-183 kB)
+
+### Next Steps
+- Connect to Supabase API for real CRUD operations
+- Implement actual image upload to storage
+- Add brand view page (detail page)
+- Add bulk operations (bulk delete, bulk approve)
+- Add export functionality (CSV, Excel)
+
+---
+
+## [Perfume Form - Field Layout & UX Improvements] - 2025-10-11 (Update 6)
+
+### Fixed - Field Widths & Layout Organization
+
+#### **1. Select Fields Now Match Input Field Width**
+**File**: `src/components/admin/perfumes/perfume-form.tsx`
+**Problem**: Select dropdowns were narrower than input fields due to `w-fit` default width
+**Solution**: Added `className="w-full"` to all SelectTrigger components
+
+**Updated Fields**:
+- Launch Year select (Line 827)
+- Type/Concentration select (Line 1039)
+- Gender select (Line 1062)
+- Price Range select (Line 1084)
+- Longevity select (Line 1125)
+- Sillage select (Line 1162)
+
+**Result**: All select dropdowns now have the same width as input fields, creating perfect visual alignment
+
+#### **2. Equal Width Fields in All Rows**
+**File**: `src/components/admin/perfumes/perfume-form.tsx`
+
+**Brand/Launch Year/Perfumer Row** (Line 799):
+- Changed from `lg:grid-cols-3` to `sm:grid-cols-3` with `flex flex-col` on each field
+- All three fields now have exactly equal width
+- Proper spacing with `gap-6` between fields
+
+**Classification Section** (Lines 1011-1172):
+- **Row 1**: Type, Gender, Price Range - `grid-cols-1 sm:grid-cols-3`
+- **Row 2**: Longevity, Sillage - `grid-cols-1 sm:grid-cols-2`
+- Each field uses `flex flex-col` for consistent structure
+- All fields in each row have equal width and spacing
+
+**Notes Section** (Line 934):
+- Pyramid mode: 3 equal-width columns - `md:grid-cols-3`
+- Linear mode: Full-width field
+- All notes fields have consistent structure
+
+#### **2. Helper Text Moved to Top**
+**Problem**: Helper text at the bottom caused layout shifts
+**Solution**: Reserved space at top with `min-h-[16px]` for single-line notes
+
+**Implementation**:
+- Type field: "Fragrance concentration level"
+- Gender field: "Target audience"
+- Price Range field: "Retail price bracket"
+- Longevity field: "Duration on skin"
+- Sillage field: "Scent projection"
+- Top Notes: "Initial scent impression"
+- Middle Notes: "Heart of the fragrance"
+- Base Notes: "Long-lasting foundation"
+- Linear Notes: "Linear fragrances blend all notes together without distinct layers"
+
+**Result**:
+- No layout shift when viewing different fields
+- Consistent visual height across all fields in a row
+- Helper text always visible, improving UX
+- Reserved space prevents content jumping
+
+### Design Improvements
+- Professional grid-based layout with true equal column widths
+- Consistent use of `flex flex-col` for vertical stacking
+- Helper text provides context without causing layout shifts
+- Improved visual hierarchy and readability
+- All rows perfectly aligned on desktop view
+
+---
+
+## [Perfume Form - Complete Fix Implementation] - 2025-10-11 (Update 5)
+
+### HOTFIX - Infinite Loop Resolved
+**File**: `src/components/admin/perfumes/perfume-form.tsx` (Lines 218-251)
+- **Problem**: "Maximum update depth exceeded" error causing infinite re-renders
+- **Root Cause**: `watch()` and `useEffect` were creating circular dependency
+- **Solution**:
+  - Removed `watch()` call that returned all form data
+  - Used `watch()` subscription pattern instead
+  - Added 300ms debounce with `setTimeout` to break render cycle
+  - Properly unsubscribe on cleanup
+- **Result**: Form persistence works without infinite loops
+
+### Fixed - All Critical User-Reported Issues
+
+#### **1. Carousel Page Reload Fixed**
+**File**: `src/components/admin/perfumes/perfume-form.tsx` (Lines 503-518)
+- **Problem**: Clicking carousel Previous/Next buttons caused entire page to reload
+- **Root Cause**: Carousel buttons inside form were acting as submit buttons
+- **Solution**:
+  - Added `type="button"` attribute to prevent form submission
+  - Added explicit `e.preventDefault()` and `e.stopPropagation()` handlers
+- **Result**: Carousel navigation now works smoothly without page reload
+
+#### **2. Complete Form State Persistence**
+**New File**: `src/lib/stores/perfume-form-state.ts`
+**Updated**: `src/components/admin/perfumes/perfume-form.tsx`
+
+**Implementation**:
+- Created new Zustand store with `persist` middleware
+- Persists ALL form fields to `sessionStorage`:
+  - Basic Info: name, slug, brandId, description, launchYear, perfumer
+  - Classification: concentration, gender, longevity, sillage, priceRange
+  - Notes: notesMode, topNoteIds, middleNoteIds, baseNoteIds, linearNoteIds
+  - Occasions: season, occasion
+  - Verification: verifiedData
+- Form automatically loads persisted data on mount
+- Data clears on successful form submission
+- Data clears when tab/window closes (session storage behavior)
+- **Result**: User never loses form progress on page reload
+
+#### **3. Equal Field Widths in All Rows**
+**File**: `src/components/admin/perfumes/perfume-form.tsx`
+
+**Fixed Rows**:
+- **Name/Slug Row** (Line 752): Already using `sm:grid-cols-2` (2 equal columns)
+- **Brand/Year/Perfumer Row** (Line 794): Changed from inconsistent to `lg:grid-cols-3` with `w-full` on each field
+- **Classification Row** (Line 1006): Changed from `xl:grid-cols-3` to `lg:grid-cols-3` with `w-full` on each field
+- **Notes Pyramid Row** (Line 929): Updated to `md:grid-cols-3` with `w-full` on each field
+
+**Implementation Details**:
+- All fields now use `w-full` class for equal width
+- Grid columns use proper fractions (`grid-cols-2`, `grid-cols-3`)
+- Consistent gap spacing (`gap-6`) between all fields
+- Responsive breakpoints: `sm:` for 2 columns, `lg:` for 3 columns
+- **Result**: Professional, aligned form layout with equal field widths
+
+### Technical Changes
+
+**Form State Store Structure**:
+```typescript
+interface PerfumeFormState {
+  formData: {
+    // All 18 form fields
+  } | null;
+  setFormData: (data) => void;
+  updateField: (field, value) => void;
+  clearFormData: () => void;
+}
+```
+
+**Session Storage Integration**:
+- Uses Zustand's `persist` middleware
+- Storage key: `perfume-form-state-storage`
+- Only persists to `sessionStorage` (clears on tab close)
+- Auto-saves on every field change via `watch()` hook
+
+**Carousel Button Fix**:
+```tsx
+<CarouselPrevious
+  type="button"
+  onClick={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }}
+/>
+```
+
+### Design Improvements
+- All form rows now have consistent visual weight
+- Fields align perfectly in desktop view
+- Professional grid-based layout matches design rules
+- No jarring size differences between field types
+
+---
+
+## [Critical Fixes - Route Persistence & Session Storage] - 2025-10-11 (Update 4)
+
+### Fixed - Major Issues Resolved
+
+#### **1. Perfume Detail Route Now Works on Page Reload**
+**File**: `src/app/admin/perfumes/[id]/page.tsx`
+- **Problem**: "Perfume not found" error when reloading edit/view page
+- **Root Cause**: Page depended on `allPerfumes` from Zustand store which cleared on reload
+- **Solution**: Added `getPerfumeById()` function in `dummy-perfumes.ts` that generates and fetches perfume directly by ID
+- **Result**: Edit pages now work perfectly after browser refresh
+
+#### **2. Session Storage Persistence Added**
+**Files**:
+- `src/lib/stores/perfume-image-upload.ts`
+- `src/lib/stores/perfume-table.ts` (already had partial persistence)
+
+**Image Upload Store**:
+- Added `persist` middleware with `sessionStorage`
+- Only persists uploaded images (filters out pending/uploading states)
+- Persists `mainImageId` to remember which image is main
+- Clears automatically when tab/window closes
+- **Result**: Uploaded images remain in carousel after page reload
+
+**Perfume Table Store**:
+- Already had `localStorage` persistence for `pageSize` and `visibleColumns`
+- No changes needed (working as expected)
+
+#### **3. Carousel Navigation Fixed**
+**File**: `src/lib/stores/perfume-image-upload.ts`
+- **Problem**: Images disappearing when navigating carousel
+- **Solution**: Session storage ensures uploaded images persist across navigation
+- **Result**: Can navigate carousel freely without losing images
+
+#### **4. Auto-Remove Thumbnail When Main Image Deleted**
+**File**: `src/lib/stores/perfume-image-upload.ts` (Lines 133-146)
+- **Logic**: When removing an image:
+  - If it's the main image, automatically set first uploaded image as new main
+  - If no uploaded images remain, set `mainImageId` to `null`
+  - Thumbnail automatically updates (computed from `mainImageId` in form component)
+- **Result**: Thumbnail always stays in sync with main image
+
+### Technical Details
+
+**getPerfumeById Function**:
+```typescript
+export function getPerfumeById(id: string): Perfume | null {
+  const allPerfumes = generateDummyPerfumes(50);
+  return allPerfumes.find(p => p.id === id) || null;
+}
+```
+
+**Session Storage Configuration**:
+```typescript
+persist(
+  (set, get) => ({ ...state }),
+  {
+    name: 'perfume-image-upload-storage',
+    storage: createJSONStorage(() => sessionStorage),
+    partialize: (state) => ({
+      images: state.images.filter(img => img.status === 'uploaded'),
+      mainImageId: state.mainImageId,
+    }),
+  }
+)
+```
+
+### Benefits
+
+- ✅ **Reliable Routes**: Edit pages work after reload (no more "not found" errors)
+- ✅ **Data Persistence**: Uploaded images survive page refreshes
+- ✅ **Better UX**: Users won't lose work when accidentally refreshing
+- ✅ **Session Scoped**: Data clears when tab closes (won't pollute storage)
+- ✅ **Smart Cleanup**: Thumbnail automatically updates when images change
+
+### Next Steps (TanStack Query Migration)
+
+As suggested, the next phase will migrate to **TanStack Query** for:
+- Smart caching and automatic refetching
+- Optimistic updates
+- Background sync
+- Request deduplication
+- Better loading/error states
+
+This will replace the current Zustand-only approach with a hybrid:
+- **TanStack Query**: Server state (perfumes, brands, notes from Supabase)
+- **Zustand**: Client state (UI state, form state, upload queue)
+
+## [Perfume Form - Upload Queue Redesign with Zustand] - 2025-10-11 (Update 3)
+
+### Complete Upload Workflow Redesign
+
+#### **1. Zustand Store for Image Upload Management**
+**File**: `src/lib/stores/perfume-image-upload.ts` (NEW FILE)
+- **State Management**: Centralized image upload queue with Zustand
+- **Image Status**: `pending` | `uploading` | `uploaded` | `error`
+- **Progress Tracking**: Real-time progress from 0-100%
+- **Actions**:
+  - `addImages(files: File[])` - Add files to queue
+  - `removeImage(id: string)` - Remove from queue
+  - `uploadImage(id: string)` - Upload with progress simulation
+  - `setMainImage(id: string)` - Set main image
+  - `updateImageStatus()` - Update status and progress
+  - `setUploadedUrls()` - Store URLs after upload
+- **Database Ready**: Simulated upload (will connect to Supabase later)
+
+#### **2. Expanded Image Format Support**
+**Files**: `src/lib/utils/image-thumbnail.ts`, `src/components/admin/perfumes/perfume-form.tsx`
+- **NEW Formats**: AVIF and SVG support added
+- **Supported**: JPEG, PNG, WebP, AVIF, SVG
+- **Validation**: Updated to accept all 5 formats
+- **Dropzone Config**: `accept` property updated with all MIME types
+
+#### **3. Upload Queue UI (Right Side)**
+**File**: `src/components/admin/perfumes/perfume-form.tsx` (Lines 547-730)
+
+**Top Section - Drag & Drop Upload Area** (Lines 549-582):
+- Larger upload area (180px min-height)
+- "Drop your files here" heading
+- "Browse Files" button inside area
+- Format requirements shown below
+- Supports multiple file selection (up to 5)
+
+**Middle Section - Import from URL** (Lines 584-616):
+- URL input field with placeholder
+- "Import" button with loading state
+- Fetches image from URL
+- Validates and adds to queue
+- Success/error toast notifications
+
+**Bottom Section - Upload Queue List** (Lines 618-729):
+- **Queue Header**: Shows "Upload Queue" + badge with count (X / 5)
+- **Empty State**: Shows placeholder when no images in queue
+- **Image Items**: Each item shows:
+  - **Thumbnail**: 64x64px preview with object-cover
+  - **File Name**: Truncated if too long
+  - **File Size**: Displayed in MB (2 decimals)
+  - **Status Badge**:
+    - `pending`: Blue "Upload" button
+    - `uploading`: Progress bar with percentage
+    - `uploaded`: Green checkmark with "Uploaded successfully"
+    - `error`: Red error message + "Retry" button
+  - **Remove Button**: X icon (disabled during upload)
+- **Scrollable**: Max height 300px with overflow-y-auto
+
+#### **4. Full Width Create Page**
+**File**: `src/app/admin/perfumes/create/page.tsx` (Lines 94-100)
+- **Removed Wrapper**: `max-w-5xl` constraint removed
+- **Full Container Width**: Form now spans entire container width
+- **Consistency**: Matches other admin pages
+
+#### **5. Progress Component**
+- **Added**: `src/components/ui/progress.tsx` (shadcn/ui)
+- **Command**: `npx shadcn@latest add progress`
+- **Usage**: Shows upload progress in queue items
+
+#### **6. Updated Image Upload Logic**
+**File**: `src/components/admin/perfumes/perfume-form.tsx`
+
+**onDrop Callback** (Lines 205-239):
+- Now adds files to Zustand store queue
+- Validates all files before adding
+- Shows success toast: "X image(s) added to queue. Click 'Upload' to process."
+- Respects 5-image limit
+
+**Import from URL Handler** (Lines 257-303):
+- Fetches image from provided URL
+- Converts blob to File object
+- Validates format and size
+- Adds to upload queue
+- Clears input after success
+- Comprehensive error handling
+
+### New Workflow
+
+**Before** (Old Multi-Upload):
+1. Drag/drop or browse files
+2. Files immediately processed and shown in carousel
+3. No upload status tracking
+4. No URL import
+
+**After** (New Queue System):
+1. Drag/drop, browse, or import from URL
+2. Files added to upload queue (status: `pending`)
+3. User clicks individual "Upload" button for each image
+4. Shows progress bar during upload (status: `uploading`)
+5. Shows checkmark when done (status: `uploaded`)
+6. Can remove images at any time (except during upload)
+7. Queue persists in Zustand store
+
+### Benefits
+
+- **User Control**: Manual upload trigger per image
+- **Visual Feedback**: Clear status indicators and progress
+- **Flexible**: Add multiple images, upload selectively
+- **Error Recovery**: Retry button for failed uploads
+- **URL Import**: Import images directly from web
+- **Database Ready**: Store structure prepared for Supabase integration
+
+### Integration Complete
+
+- ✅ **Carousel now displays uploaded images** from Zustand store
+- ✅ **Thumbnail generation** implemented during upload (400x500 + 90x90)
+- ✅ **Main image selection** synced with store via `mainImageId`
+- ✅ **Form submission** uses images and thumbnails from uploaded queue
+- ✅ **Remove button** in carousel removes from store
+- ✅ **Set as Main button** updates store's `mainImageId`
+
+### Next Steps (TODO)
+
+- Connect `uploadImage()` to Supabase storage (currently using simulated upload)
+- Replace data URLs with Supabase bucket URLs after upload
+- Add image crop feature to upload workflow (currently disabled)
+
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## [Perfume Form - UX Improvements & Multi-Image Support] - 2025-10-11 (Update 2)
+
+### Enhanced - Major UX & Feature Improvements
+
+#### **1. Desktop Layout Optimization**
+**File**: `src/components/admin/perfumes/perfume-form.tsx` (Lines 560-681)
+- **Brand, Year, Perfumer Row**: Aligned in one row on desktop (lg:grid-cols-3)
+- **Responsive**: 2 columns on tablet, 3 columns on large screens
+- **Name & Slug**: Kept as separate row for better visibility
+
+#### **2. Notes Chips Repositioned**
+**File**: `src/components/admin/perfumes/notes-input.tsx` (Lines 124-146)
+- **NEW**: Chips now appear BELOW the field description (not above)
+- **Benefit**: No layout shift when adding/removing notes
+- **Reserved Space**: `min-h-[32px]` ensures smooth transitions
+- **Better UX**: User sees field → description → selected chips (logical flow)
+
+#### **3. Classification Fields Consistency**
+**File**: `src/components/admin/perfumes/perfume-form.tsx` (Line 844)
+- **Grid Updated**: `sm:grid-cols-2 xl:grid-cols-3` for consistent widths
+- **Responsive**: 2 columns on tablet, 3 on extra-large screens
+- **All Fields Same Width**: Concentration, Gender, Price Range, Longevity, Sillage
+
+#### **4. High-Quality Image Uploads (Fixed Blur)**
+**File**: `src/components/admin/perfumes/perfume-form.tsx` (Lines 225-261)
+- **Canvas API with High Quality**: `imageSmoothingQuality = 'high'`
+- **JPEG Quality**: 95% compression (was causing blur before)
+- **Proper Scaling**: Maintains aspect ratio and sharpness
+- **Both Images**: Main 400x500 and thumbnail 90x90 use high quality settings
+
+#### **5. Toast Notifications for File Validation**
+**File**: `src/components/admin/perfumes/perfume-form.tsx` (Lines 188-198)
+- **Unsupported Format**: "Unsupported file format. Please use JPEG, PNG, or WebP."
+- **File Too Large**: "File size exceeds 5MB limit."
+- **Maximum Reached**: "Maximum 5 images allowed."
+- **Success**: "Image uploaded successfully!" / "Image cropped and saved!"
+- **Set Main Image**: "Main image updated!"
+- **Remove Image**: "Image removed!"
+
+#### **6. Multiple Image Support (Up to 5)**
+**File**: `src/components/admin/perfumes/perfume-form.tsx`
+- **State Management** (Lines 119-128): `images` array + `mainImageIndex`
+- **Upload Callback** (Lines 187-270): Handles multiple uploads
+- **Main Image Selection**: User can set any image as main
+- **Thumbnail Generation**: Auto-generated from main image only
+- **Remove Images**: Individual remove buttons for each image
+- **Counter**: Shows "X / 5 images • Upload more" or "Maximum reached"
+
+#### **7. Image Carousel with Navigation**
+**File**: `src/components/admin/perfumes/perfume-form.tsx` (Lines 443-497)
+- **shadcn/ui Carousel**: `npm install embla-carousel-react`
+- **Navigation**: Previous/Next arrows (only shown when multiple images)
+- **Main Image Badge**: "Main Image" indicator on selected image
+- **Remove Button**: Top-right X button on each slide
+- **Set as Main Button**: Bottom-left button on non-main images
+- **Responsive**: Full width on mobile, contained on desktop
+
+#### **8. Upload Button Inside Drag-Drop Area**
+**File**: `src/components/admin/perfumes/perfume-form.tsx` (Lines 527-565)
+- **Unified Interface**: Button is part of drag-drop box (not separate)
+- **Better UX**: "Drag & drop or Browse Files" - single upload area
+- **Processing State**: Shows "Processing..." with spinner
+- **Disabled State**: Grayed out when maximum images reached
+- **Compact Design**: Narrower width (320px on desktop)
+
+#### **9. Image Section Layout Rebalanced**
+**File**: `src/components/admin/perfumes/perfume-form.tsx` (Line 441)
+- **NEW Grid**: `lg:grid-cols-[1fr_auto]` - carousel takes more space
+- **Left Side (Wider)**: Image carousel + thumbnail preview
+- **Right Side (Narrower)**: Compact upload area (320px)
+- **Mobile**: Stacks vertically (carousel first, then upload)
+- **Better Proportions**: More space for viewing images, less for upload UI
+
+#### **10. shadcn/ui Carousel Component Added**
+- **Package**: `embla-carousel-react@8.6.3`
+- **Component**: `src/components/ui/carousel.tsx`
+- **Command**: `npx shadcn@latest add carousel`
+- **Features**: Touch/swipe support, keyboard navigation, responsive
+
+### Updated Image Upload Workflow
+
+**Before**:
+1. Upload image → Shows in 400x500 preview
+2. Single image only
+3. No quality control (blurry)
+4. Separate button below drag-drop
+
+**After**:
+1. Upload up to 5 images → Shows in carousel
+2. Select which image is "main" (generates thumbnail from main)
+3. High-quality canvas rendering (sharp, clear)
+4. Unified upload interface (button inside drag-drop)
+5. Visual feedback with badges and counters
+6. Easy navigation and removal
+
+### Design Compliance
+- ✅ Desktop layout optimized (brand/year/perfumer in one row)
+- ✅ Notes chips below description (no layout shift)
+- ✅ Classification fields consistent width
+- ✅ High-quality image uploads (no blur)
+- ✅ Toast notifications for all validation errors
+- ✅ Multiple images with carousel
+- ✅ Upload button inside drag-drop area
+- ✅ Image section rebalanced (more space for preview)
+- ✅ Responsive across all breakpoints
+- ✅ Professional UX with smooth transitions
+
+### Technical Details
+- Image quality: 95% JPEG compression with high smoothing
+- Canvas API: `imageSmoothingEnabled` + `imageSmoothingQuality = 'high'`
+- Carousel: embla-carousel-react with shadcn/ui wrapper
+- File validation: react-dropzone with proper TypeScript types (`FileRejection`)
+- State management: Multiple images array with main image index
+- Thumbnail generation: Only from selected main image
+
+## [Perfume Form - Complete Redesign] - 2025-10-11
+
+### Added - Comprehensive Perfume Form Redesign
+
+#### **1. Full Width Layout**
+**File**: `src/app/admin/perfumes/[id]/page.tsx`
+- Removed max-width constraint for full width layout
+- Form now aligns with page heading consistently with other admin pages
+
+#### **2. Brand Searchable Combobox**
+**File**: `src/components/admin/perfumes/brand-combobox.tsx`
+- Searchable dropdown for approved brands
+- Real-time brand search with 25 pre-loaded brands
+- "Suggest New Brand" button redirecting to `/admin/brands/create`
+- Brand metadata display (perfume count per brand)
+- Check icon for selected brand
+
+**File**: `src/lib/data/dummy-brands.ts`
+- 25 dummy brands with realistic data
+- Brand properties: id, name, slug, status, country, perfumeCount
+- Utility functions: getApprovedBrands(), searchBrands(), getBrandById(), getBrandBySlug()
+
+#### **3. Auto-generating Slug Field**
+**File**: `src/lib/utils/slug.ts`
+- Real-time slug generation from perfume name
+- URL-friendly transformation: lowercase, spaces→hyphens, special char removal
+- Utility functions: generateSlug(), generateYearOptions(), getLaunchYearOptions()
+
+#### **4. Advanced Image Upload Section**
+**File**: `src/components/admin/perfumes/perfume-form.tsx` (Lines 320-442)
+- **Left Side**: 400x500px main image preview + 90x90px thumbnail preview
+- **Right Side**: Drag-drop area supporting JPEG, PNG, WebP + "Upload from Computer" button
+- Image requirements listed below upload area
+- Processing state with loading spinner
+- Remove image button with smooth transitions
+
+#### **5. Image Crop Dialog**
+**File**: `src/components/admin/perfumes/image-crop-dialog.tsx`
+- Popup modal for images exceeding 400x500px
+- React Image Crop integration with 4:5 aspect ratio
+- Generates both 400x500px main image and 90x90px thumbnail
+- Cancel and Save buttons with processing states
+
+**Package**: `react-image-crop@11.0.7`
+- Professional image cropping library
+
+**Package**: `react-dropzone@14.3.2`
+- Drag-and-drop file upload functionality
+
+#### **6. Launch Year Select Dropdown**
+**File**: `src/components/admin/perfumes/perfume-form.tsx` (Lines 511-537)
+- Year dropdown from 2025 to 1925 in reverse chronological order
+- Scrollable select with max-height: 300px
+
+#### **7. Info Tooltips on Complex Fields**
+**File**: `src/components/admin/perfumes/perfume-form.tsx`
+- Perfumer tooltip: "Enter the name of the perfumer(s) who created this fragrance. Also known as 'the nose' in perfumery."
+- Concentration tooltip: "Concentration determines the strength and longevity of the fragrance. Higher concentration = stronger scent and longer lasting."
+- Longevity tooltip: "How long the fragrance lasts on your skin after application."
+- Sillage tooltip: "The trail of scent left behind. How far the fragrance projects from your skin."
+- Info icon (ⓘ) beside field labels with hover state
+
+#### **8. Notes Mode Toggle (Pyramid/Linear)**
+**File**: `src/components/admin/perfumes/perfume-form.tsx` (Lines 55-148)
+- Switch between Pyramid (Top/Middle/Base) and Linear (single field) modes
+- Toggle button with visual state
+- Conditional form validation based on selected mode
+
+#### **9. Notes Chips Input**
+**File**: `src/components/admin/perfumes/notes-input.tsx`
+- Multi-select notes input with searchable dropdown
+- Selected notes displayed as removable chips (badges)
+- 60 pre-loaded notes across 9 categories
+- Real-time search filtering
+- Category badges for each note
+- Check icon for selected notes
+- Add/remove notes via chips or dropdown
+
+**File**: `src/lib/data/dummy-notes.ts`
+- 60 dummy notes with realistic data
+- Note categories: Citrus, Floral, Woody, Spicy, Fruity, Green, Aquatic, Oriental, Aromatic
+- Utility functions: getApprovedNotes(), searchNotes(), getNotesByCategory(), getNoteById()
+
+#### **10. shadcn/ui Components Added**
+- **command**: Searchable combobox functionality (`npx shadcn@latest add command`)
+- **popover**: Dropdown popover container (`npx shadcn@latest add popover`)
+- **switch**: Toggle switch for notes mode (`npx shadcn@latest add switch`)
+
+#### **11. Form Validation & Structure**
+**File**: `src/components/admin/perfumes/perfume-form.tsx`
+- Zod schema with conditional validation for pyramid/linear modes
+- React Hook Form integration
+- Error messages with reserved space (min-h-[20px]) to prevent layout shift
+- All fields follow CLAUDE.md design rules (spacing, typography, accessibility)
+
+### Design Compliance
+- ✅ Full width card aligned with page heading
+- ✅ Consistent spacing using 4-8-16-24-32-48 scale
+- ✅ Dark/light mode support for all new components
+- ✅ Info tooltips with proper ARIA labels
+- ✅ Cursor pointer on all interactive elements
+- ✅ Reserved space for error messages (no layout shift)
+- ✅ Responsive design (mobile, tablet, desktop)
+- ✅ Professional visual hierarchy with clear sections
+- ✅ Semantic HTML and accessibility attributes
+
+### Technical Details
+- TypeScript with strict type checking
+- React Hook Form with Zod validation
+- Canvas API for thumbnail generation
+- FileReader API for image preview
+- Drag-and-drop with file validation
+- Real-time slug generation with useEffect
+- Conditional form rendering based on toggle state
+
+## [Perfume Management System - Complete UI Implementation] - 2025-10-10
+
+### Added - Complete Perfume Management System
+
+#### **1. Universal Search Component**
+**File**: `src/components/common/universal-search.tsx`
+- Multi-entity search (perfumes, brands, notes) with single input
+- Debounced search (500ms) for performance optimization
+- Keyboard navigation (Arrow Up/Down, Enter, Escape)
+- Type badges for visual entity identification
+- Thumbnail preview for perfumes
+- Metadata display (brand name, perfume count)
+- Loading states, empty states, click-outside to close
+- Fully responsive and accessible (ARIA labels)
+- Dark/light mode support
+
+#### **2. Perfume Data Table**
+**File**: `src/components/admin/perfumes/perfume-table.tsx`
+- Feature-rich table with TanStack React Table v8
+- **Search & Filtering**: Debounced search (300ms), status filter
+- **Sorting**: Click column headers, asc/desc toggle
+- **Pagination**: Page size control (10/20/50/100), First/Previous/Next/Last navigation
+- **Column Visibility**: 15+ columns with show/hide dropdown, fixed columns (thumbnail, name, brand, status, actions)
+- **Row Selection**: Checkbox selection, select all, selection counter
+- **Row Actions**: View, Edit, Delete buttons per row
+- **Data Display**: Thumbnails, status badges, formatted dates, note pills
+- Loading skeleton, empty states, responsive design
+
+#### **3. Table State Management**
+**File**: `src/lib/stores/perfume-table.ts`
+- Zustand store for centralized table state
+- Manages: pagination, sorting, filtering, column visibility, row selection
+- Persistent storage for column preferences (localStorage)
+- Actions: initialize, refresh, setPage, setPageSize, setSearch, setStatusFilter, toggleColumn, row selection
+
+#### **4. Dummy Data Generator**
+**File**: `src/lib/data/dummy-perfumes.ts`
+- Generates 100 realistic perfumes for testing
+- 10 brands (Chanel, Dior, Creed, Tom Ford, etc.)
+- Random attributes: notes, seasons, occasions, prices
+- Status distribution: draft, pending, approved, rejected
+- Utility functions: generateDummyPerfumes, getPaginatedPerfumes, filterPerfumes, sortPerfumes
+
+#### **5. Image Thumbnail Utility**
+**File**: `src/lib/utils/image-thumbnail.ts`
+- High-quality thumbnail generation using Canvas API
+- 90x90px thumbnails with `imageSmoothingQuality = 'high'`
+- Maintains aspect ratio with cover/contain fit modes
+- White background for transparent images
+- Returns both Blob and Data URL
+- File validation (JPEG/PNG/WebP, max 5MB)
+- Functions: generateThumbnail, validateImageFile, readFileAsDataURL
+
+#### **6. Perfume Form Component**
+**File**: `src/components/admin/perfumes/perfume-form.tsx`
+- Reusable form for both create and edit modes
+- **Image Upload**: Click to upload, file validation, automatic thumbnail generation (90x90px)
+- **Form Fields**: 20+ fields including name, brand, year, perfumer, description, notes, classification, seasons, occasions
+- **Validation**: Zod schema with real-time error messages
+- **Badge Selection**: Interactive season/occasion toggles
+- **Modes**: Create (empty form) or Edit (prefilled with initialData)
+- **Buttons**: Cancel, Save as Draft, Submit for Approval
+- Fully responsive with proper spacing and alignment
+
+#### **7. Create Perfume Page**
+**File**: `src/app/admin/perfumes/create/page.tsx`
+- Full-page route for creating new perfumes
+- Clean page header with "Back to Perfumes" button
+- Uses shared PerfumeForm component
+- Handles submission and navigation back to table
+
+#### **8. Edit Perfume Page**
+**File**: `src/app/admin/perfumes/[id]/page.tsx`
+- Full-page route for editing existing perfumes
+- Fetches perfume data and prefills form
+- Loading skeleton while fetching
+- Uses same PerfumeForm component with initialData prop
+- Handles updates and navigation
+
+#### **9. Table Column Configuration**
+**File**: `src/components/admin/perfumes/perfume-table-columns.tsx`
+- 15+ column definitions with custom cell renderers
+- Fixed columns: select, thumbnail, name, brand, status, actions
+- Optional columns: year, perfumer, concentration, gender, notes, longevity, sillage, price, seasons, occasions, timestamps
+- Sortable headers with visual indicators
+- Row actions dropdown (View, Edit, Delete)
+
+#### **10. Main Perfumes Page Updates**
+**File**: `src/app/admin/perfumes/page.tsx`
+- Removed modal dialog approach
+- "Add Perfume" button navigates to `/admin/perfumes/create`
+- Edit/View buttons navigate to `/admin/perfumes/[id]`
+- Universal search integration
+- Clean page layout with proper sections
+
+### Technical Implementation
+- **React Hook Form + Zod**: Form validation with TypeScript types
+- **TanStack React Table v8**: Advanced table functionality
+- **Zustand**: State management with persistence
+- **Canvas API**: High-quality image thumbnail generation
+- **Next.js App Router**: File-based routing for create/edit pages
+- **shadcn/ui Components**: Consistent UI component library
+- **Debouncing**: Search optimization (300-500ms)
+- **Responsive Design**: Mobile-first approach
+- **Dark/Light Mode**: Full theme support throughout
+
+### Navigation Flow
+```
+/admin/perfumes (main table)
+    ├─> "Add Perfume" → /admin/perfumes/create
+    ├─> "Edit" button → /admin/perfumes/[id]
+    └─> "View" button → /admin/perfumes/[id]
+
+/admin/perfumes/create
+    ├─> Submit → back to /admin/perfumes
+    └─> Cancel → back to /admin/perfumes
+
+/admin/perfumes/[id]
+    ├─> Update → back to /admin/perfumes
+    └─> Cancel → back to /admin/perfumes
+```
+
+### Design Quality
+- ✅ Consistent spacing (4-8-16-24-32 scale - Rule 41)
+- ✅ Visual hierarchy with typography scale (Rule 42)
+- ✅ Semantic colors and proper contrast (Rule 43)
+- ✅ Component consistency across system (Rule 44)
+- ✅ Whitespace and breathing room (Rule 45)
+- ✅ Accessibility with ARIA labels (Rule 46)
+- ✅ Responsive on all devices (Rule 47)
+- ✅ Interaction feedback on all elements (Rule 48)
+- ✅ Performance optimized (Rule 49)
+
+### Dependencies Added
+- `@tanstack/react-table@^8.21.3`: Advanced table functionality
+
+### Files Modified
+- `src/app/admin/perfumes/page.tsx`: Removed dialog, added navigation
+- `package.json`: Added @tanstack/react-table dependency
+- `src/components/auth/register/email-step-form.tsx`: Removed unused Link import
+
+### Ready for Backend Integration
+- Replace dummy data with Supabase queries
+- Implement Create/Update/Delete mutations
+- Upload images to Supabase Storage
+- Connect real authentication for createdBy field
+- Add actual navigation routes for View mode
+
+---
+
 ## [Registration Form UX Improvements] - 2025-10-10
 
 ### Enhanced - Registration Form Behavior

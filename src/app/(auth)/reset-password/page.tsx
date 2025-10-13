@@ -193,7 +193,7 @@ export default function ResetPasswordPage() {
             {isLoading ? (
               <>
                 <LoadingSpinner size="sm" className="mr-2" />
-                Resetting password...
+                Resetting password
               </>
             ) : (
               'Reset password'

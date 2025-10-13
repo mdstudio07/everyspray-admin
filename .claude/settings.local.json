@@ -10,7 +10,11 @@
       "Bash(psql:*)",
       "Bash(npx supabase:*)",
       "Bash(find:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "mcp__shadcn__get_project_registries",
+      "mcp__shadcn__search_items_in_registries",
+      "mcp__shadcn__get_item_examples_from_registries",
+      "mcp__shadcn__view_items_in_registries"
     ],
     "deny": [],
     "ask": []

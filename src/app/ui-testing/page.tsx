@@ -346,7 +346,7 @@ export default function UITestingPage() {
                 <LoadingSpinner type="loading" size="lg" />
                 <Button disabled>
                   <LoadingSpinner type="loading" size="sm" className="mr-2" />
-                  Loading...
+                  Loading
                 </Button>
               </div>
             </div>
@@ -361,7 +361,7 @@ export default function UITestingPage() {
                 <LoadingSpinner type="processing" size="lg" />
                 <Button disabled>
                   <LoadingSpinner type="processing" size="sm" className="mr-2" />
-                  Processing...
+                  Processing
                 </Button>
               </div>
             </div>
@@ -376,7 +376,7 @@ export default function UITestingPage() {
                 <LoadingSpinner type="saving" size="lg" />
                 <Button disabled>
                   <LoadingSpinner type="saving" size="sm" className="mr-2" />
-                  Saving...
+                  Saving
                 </Button>
               </div>
             </div>
